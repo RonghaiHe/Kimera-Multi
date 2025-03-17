@@ -3,7 +3,7 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2025-12-30 12:19:40
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-01-22 11:34:32
+LastEditTime: 2025-03-14 11:48:25
 FilePath: /src/kimera_multi/evaluation/extract_lc_images.py
 Version: 1.0.0
 Description: To extract images from rosbag based on Loop closure results (distance > 30m)
@@ -48,6 +48,9 @@ def parse_args():
     parser.add_argument('--date', type=str, default='1207',
                         choices=list(DATE2DATASET.keys()),
                         help='Date of the dataset (e.g., 1207, 1014, 1208)')
+    parser.add_argument('--sta_basic_path', type=str,
+                        default='/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets',
+                        help='Base path to the estimation statistics of multi-robot datasets')
     parser.add_argument('--threshold', type=float, default=30.0,
                         help='Distance threshold for LC results')
     parser.add_argument('--basic_bag_path', type=str,
@@ -66,6 +69,14 @@ def extract_and_merge_images(bag_file1, bag_file2, timestamp1, timestamp2, robot
 
     put_temp_dir = os.path.dirname(
         output_path) + f'/temp_images'
+
+    # Create directory for original images
+    orig_images_dir = os.path.join(
+        os.path.dirname(output_path), 'original_images')
+    os.makedirs(orig_images_dir, exist_ok=True)
+
+    # Get base filename for consistent naming
+    base_filename = os.path.basename(output_path).replace('.png', '')
 
     try:
         start_time1 = timestamp1 - 0.05
@@ -92,7 +103,7 @@ def extract_and_merge_images(bag_file1, bag_file2, timestamp1, timestamp2, robot
                         capture_output=True,
                         timeout=5  # 5 second timeout
                     )
-                    time.sleep(2)
+                    time.sleep(5)
 
                     # Move the extracted frame file to the target directory if it exists,
                     # using a blur matching technique to ensure the correct frame is selected
@@ -117,7 +128,7 @@ def extract_and_merge_images(bag_file1, bag_file2, timestamp1, timestamp2, robot
                         capture_output=True,
                         timeout=5  # 5 second timeout
                     )
-                    time.sleep(2)
+                    time.sleep(5)
 
                     # Move the extracted frame file to the target directory if it exists,
                     # using a blur matching technique to ensure the correct frame is selected
@@ -135,6 +146,17 @@ def extract_and_merge_images(bag_file1, bag_file2, timestamp1, timestamp2, robot
 
         if img1 is None or img2 is None:
             raise ValueError(f"Failed to read images for {output_path}")
+
+        # Save original images to original_images directory
+        orig_img1_path = os.path.join(
+            orig_images_dir, f'{base_filename}_img1.jpg')
+        orig_img2_path = os.path.join(
+            orig_images_dir, f'{base_filename}_img2.jpg')
+
+        # After reading the images, save copies of the originals
+        if img1 is not None and img2 is not None:
+            cv2.imwrite(orig_img1_path, img1)
+            cv2.imwrite(orig_img2_path, img2)
 
         # Resize images to same height
         height = min(img1.shape[0], img2.shape[0])
@@ -289,7 +311,7 @@ def main():
     all_high_distance_rows = []
     print("Reading CSV files...")
     for robot_name in tqdm(ID2ROBOT, desc="Processing robots"):
-        inter_csv_filename = '/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws/src/kimera_multi/evaluation' + \
+        inter_csv_filename = args.sta_basic_path + \
             f'/{args.date}/inter_lc_results_{args.date}_{robot_name}.csv'
         if os.path.exists(inter_csv_filename):
             try:
@@ -303,7 +325,7 @@ def main():
             all_high_distance_rows.extend(
                 high_distance_rows.to_dict('records'))
 
-        intra_csv_filename = '/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws/src/kimera_multi/evaluation' + \
+        intra_csv_filename = args.sta_basic_path + \
             f'/{args.date}/intra_lc_results_{args.date}_{robot_name}.csv'
         if os.path.exists(intra_csv_filename):
             df = pd.read_csv(intra_csv_filename)
@@ -321,10 +343,12 @@ def main():
         return
 
     # Create output directory
-    output_dir = '/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws/src/kimera_multi/evaluation/' + \
-        f'lc_images_{args.date}'
+    output_dir = args.sta_basic_path + \
+        f'/lc_images_{args.date}'
     os.makedirs(output_dir, exist_ok=True)
     os.makedirs(output_dir + '/temp_images', exist_ok=True)
+    # Create directory for original images
+    os.makedirs(output_dir + '/original_images', exist_ok=True)
 
     # Create a manager for sharing the lock between processes
     manager = Manager()

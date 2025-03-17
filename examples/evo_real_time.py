@@ -3,7 +3,7 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2024-09-28 15:57:06
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-02-07 10:50:38
+LastEditTime: 2025-03-13 16:39:54
 FilePath: /src/kimera_multi/examples/evo_real_time.py
 Version: 
 Description: 
@@ -47,6 +47,15 @@ def parse_args():
     parser.add_argument('--flag_multi', type=int, default=1,
                         choices=[1, 0],
                         help='Flag for multi or single robot')
+    parser.add_argument('--dataset', type=str, default='Kimera-Multi',
+                        help='Name of the dataset (optional)')
+    # Add new arguments for directory paths
+    parser.add_argument('--log_dir', type=str, default='',
+                        help='Custom log directory path (optional)')
+    parser.add_argument('--gt_dir', type=str, default='',
+                        help='Custom ground truth directory path (optional)')
+    parser.add_argument('--ape_dir', type=str, default='',
+                        help='Custom APE output directory path (optional)')
     return parser.parse_args()
 
 
@@ -54,13 +63,22 @@ def parse_args():
 DIR_PREFIX = '/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets'
 
 
-def setup_paths(date):
-    dataset_name = DATE2DATASET[date]
-    return {
-        'LOG_DIR': f'{DIR_PREFIX}/{dataset_name}/log_data_{date}/',
+def setup_paths(date, custom_log_dir='', custom_gt_dir='', custom_ape_dir=''):
+    # Default paths
+    default_paths = {
+        'LOG_DIR': f'{DIR_PREFIX}/{DATE2DATASET[date]}/log_data_{date}/',
         'GT_DIR': f'{DIR_PREFIX}/Kimera-Multi-Public-Data/ground_truth/{date[:2]}{date[3:]}/',
-        'APE_DIR': f'{DIR_PREFIX}/evo_try/{dataset_name}/test_distributed/'
+        'APE_DIR': f'{DIR_PREFIX}/evo_try/{DATE2DATASET[date]}/test_distributed/'
     }
+
+    # Override with custom paths if provided
+    paths = {
+        'LOG_DIR': custom_log_dir if custom_log_dir else default_paths['LOG_DIR'],
+        'GT_DIR': custom_gt_dir if custom_gt_dir else default_paths['GT_DIR'],
+        'APE_DIR': custom_ape_dir if custom_ape_dir else default_paths['APE_DIR']
+    }
+
+    return paths
 
 
 # Initialize global variables
@@ -133,9 +151,9 @@ signal.signal(signal.SIGHUP, signal_handler)
 newest_file_num = 0
 
 
-def main(retry_count=10):
+def main(retry_count=100):
     args = parse_args()
-    paths = setup_paths(args.date)
+    paths = setup_paths(args.date, args.log_dir, args.gt_dir, args.ape_dir)
 
     global LOG_DIR, GT_DIR, APE_DIR, ROBOT_NUM, ROBOT_NAMES, flag_multi, ape_trans, ape_full, newest_file_num
     LOG_DIR = paths['LOG_DIR']
@@ -145,6 +163,7 @@ def main(retry_count=10):
 
     # Adjust ROBOT_NAMES based on robot_num
     flag_multi = args.flag_multi
+    dataset_name = args.dataset
     ROBOT_NAMES = ROBOT_NAMES[:ROBOT_NUM]
 
     # Initialize APE metrics inside main
@@ -155,8 +174,13 @@ def main(retry_count=10):
     traj_ref = []
     print("Loading ground truth trajectories...")
     for num in range(ROBOT_NUM):
-        ref_file = os.path.join(
-            GT_DIR, f'modified_{ROBOT_NAMES[num]}_gt_odom.tum')
+        if dataset_name == 'Kimera-Multi':
+            ref_file = os.path.join(
+                GT_DIR, f'modified_{ROBOT_NAMES[num]}_gt_odom.tum')
+        elif dataset_name == 'EuRoC':
+            ref_file = os.path.join(GT_DIR, 'data.tum')
+        else:
+            raise ValueError("Invalid dataset name")
         try:
             traj = file_interface.read_tum_trajectory_file(ref_file)
             traj_ref.append(traj)
@@ -181,7 +205,7 @@ def main(retry_count=10):
         os.makedirs(APE_DIR)
 
     TYPE_DIR = 'distributed/'
-    JUDGE_IF_KILLED = 6010
+    JUDGE_IF_KILLED = 2000
     newest_file = None
     if not flag_multi:
         TYPE_DIR = 'single/'
@@ -246,9 +270,9 @@ def main(retry_count=10):
                         # 获取文件名称的数字部分
                         newest_file_num = int(
                             newest_file.split('_')[-1].split('.')[0])
-                    if newest_file_num > JUDGE_IF_KILLED:
+                    if newest_file_num >= JUDGE_IF_KILLED:
                         raise ValueError(
-                            f'Killed for {newest_file_num} > {JUDGE_IF_KILLED}')
+                            f'Killed for {newest_file_num} >= {JUDGE_IF_KILLED}')
                     print(
                         f'Processing {newest_file_num} of {ROBOT_NAMES[num]}')
                     # 获取文件内容行数

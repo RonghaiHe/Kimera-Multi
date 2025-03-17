@@ -3,12 +3,13 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2024-12-26 20:31:33
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-01-21 17:54:07
+LastEditTime: 2025-03-14 12:23:29
 FilePath: /src/kimera_multi/evaluation/lc_result.py
 Version: 1.3.0
 Description: To log the loop closure result with groundtruth pose and visualize them
 
 '''
+import scienceplots
 import pandas as pd
 from scipy.spatial.transform import Rotation as R
 import numpy as np
@@ -25,6 +26,8 @@ from functools import partial
 from multiprocessing import Manager, Lock
 import matplotlib
 matplotlib.use('Agg')  # Set backend to non-interactive
+
+plt.style.use(['science', 'ieee', 'no-latex'])
 
 # Create colormap for distances
 norm = Normalize(vmin=0, vmax=50)  # Normalize distances from 0 to 20 meters
@@ -44,6 +47,25 @@ ID2ROBOT = [
 DATE2DATASET = {'1207': 'campus_tunnels_12_07',
                 '1014': 'campus_outdoor_10_14',
                 '1208': 'campus_hybrid_12_08'}
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Process loop closure results')
+    parser.add_argument('--date', type=str, default='1207',
+                        choices=list(DATE2DATASET.keys()),
+                        help='Date of the dataset (e.g., 1207, 1014, 1208)')
+    parser.add_argument('--sta_basic_path', type=str,
+                        default='/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets',
+                        help='Base path to the estimation statistics of multi-robot datasets')
+    parser.add_argument('--gt_basic_path', type=str,
+                        default='/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets',
+                        help='Base path to the GT of multi-robot datasets')
+    parser.add_argument('--num_robots', type=int, default=6,
+                        help='Number of robots in the dataset, often 6 or 8')
+    parser.add_argument('--threshold', type=float, default=50,
+                        help='Threshold for loop closure distances')
+    return parser.parse_args()
 
 
 def read_groundtruth_tum(file_path):
@@ -94,22 +116,6 @@ def calculate_relative_pose(pose1, pose2):
     angle = rotation.magnitude()
 
     return q_rel, t_rel, distance, angle
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description='Process loop closure results')
-    parser.add_argument('--date', type=str, default='1207',
-                        choices=list(DATE2DATASET.keys()),
-                        help='Date of the dataset (e.g., 1207, 1014, 1208)')
-    parser.add_argument('--basic_path', type=str,
-                        default='/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets',
-                        help='Base path to the multi-robot datasets')
-    parser.add_argument('--num_robots', type=int, default=6,
-                        help='Number of robots in the dataset, often 6 or 8')
-    parser.add_argument('--threshold', type=float, default=50,
-                        help='Threshold for loop closure distances')
-    return parser.parse_args()
 
 
 def parse_csv_files(loop_closure_file, lcd_status_file, lcd_result_file):
@@ -562,7 +568,7 @@ def main(args):
         print('Invalid date: {}'.format(args.date))
         return
 
-    dataset_name = DATE2DATASET[args.date]
+    # dataset_name = DATE2DATASET[args.date]
 
     # Check if exists the file for dateoutput_file
     if not os.path.exists(f'{args.date}'):
@@ -575,9 +581,9 @@ def main(args):
                 os.remove(file_path)
 
     # Construct paths inside main function
-    loop_closure_file_prefix = f'{args.basic_path}/{dataset_name}/log_data_{args.date[:2]}_{args.date[2:]}'
-    keyframes_files_prefix = f'{args.basic_path}/{dataset_name}/log_data_{args.date[:2]}_{args.date[2:]}/'
-    groundtruth_files_prefix = f'{args.basic_path}/Kimera-Multi-Public-Data/ground_truth/{args.date}/'
+    loop_closure_file_prefix = f'{args.sta_basic_path}/log_data_{args.date[:2]}_{args.date[2:]}'
+    keyframes_files_prefix = f'{args.sta_basic_path}/log_data_{args.date[:2]}_{args.date[2:]}/'
+    groundtruth_files_prefix = f'{args.gt_basic_path}/Kimera-Multi-Public-Data/ground_truth/{args.date}/'
     inter_output_file = f'./{args.date}/inter_lc_results_{args.date}_'
     intra_output_file = f'./{args.date}/intra_lc_results_{args.date}_'
     intra_rejected_part_output_file = f'./{args.date}/intra_lc_rejected_part_{args.date}_'
@@ -687,7 +693,7 @@ def main(args):
     cbar.set_label('Loop Closure Distance (m)', fontsize=10)
 
     plt.legend()
-    plt.savefig(f'lc_results_{args.date}.jpg', dpi=300, bbox_inches='tight')
+    plt.savefig(f'lc_results_{args.date}.pdf', dpi=300, bbox_inches='tight')
 
     print(f"Total time: {time.time() - start_time}")
 

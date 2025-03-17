@@ -4,13 +4,14 @@
  # @Author: Ronghai He
  # @Date: 2025-12-28 19:56:40
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-01-08 12:12:05
+ # @LastEditTime: 2025-03-14 12:24:43
  # @FilePath: /src/kimera_multi/evaluation/extract_lc_images.sh
  # @Description: Run programs and move images
  # 
 ### 
 
 DATE="1207"
+CURRENT_DIR=$(dirname "$0")
 
 # Check if ros-noetic-image-transport-plugins is installed
 if ! dpkg -l | grep ros-${ROS_DISTRO}-image-transport-plugins; then
@@ -20,7 +21,7 @@ fi
 source /media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws/devel/setup.bash
 
 # Extract sub-rosbag for specific image and merge them into one image
-gnome-terminal --title="run" -- /bin/bash -c "source ~/miniconda3/bin/activate env3_9; python extract_lc_images.py --date $DATE"
+gnome-terminal --title="run" -- /bin/bash -c "source ~/miniconda3/bin/activate env3_9; python ${CURRENT_DIR}/extract_lc_images.py --date $DATE --sta_basic_path /media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/evo_try/campus_tunnels_12_07/test_distributed_mono_count_kf_undistort/test_distributed3"
 
 # Run launch file to extract image from the topic
 gnome-terminal --title="run" -- /bin/bash -c "roslaunch kimera_multi extract_lc_images.launch"
