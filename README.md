@@ -25,6 +25,8 @@ Here are main changes or new features(still updating):
 
 <details>
   <summary>See Changelog for more details:</summary>
+  2025/02
+  - Add files for running EuRoC dataset (`euroc_single.yaml`, `run_euroc.sh` and `kimera_vio_ros_euroc_multi.launch`)
 
   2025/01
   - Add more evaluation for loop closures (In `/evalution`):
@@ -62,9 +64,9 @@ Here are main changes or new features(still updating):
 
 TODO:
 - [x] Modify codes about output format to run `evo`
-- [ ] Add `.yaml` file to run euroc dataset. A [reference](https://github.com/MIT-SPARK/Kimera-Multi/issues/9).
+- [x] Add `.yaml` file to run euroc dataset. A [reference](https://github.com/MIT-SPARK/Kimera-Multi/issues/9).
 - [ ] Asynchronous operation for evaluation by `evo`
-- [ ] Modify `lc_result.py` to run parallelly
+- [x] Modify `lc_result.py` to run parallelly
 
 Blogs about the [installation](https://blog.csdn.net/Ben__Ho/article/details/137350202)([complement](https://blog.csdn.net/Ben__Ho/article/details/142219177)) and the [running](https://blog.csdn.net/Ben__Ho/article/details/138171249) in Simplified Chinese.
 
