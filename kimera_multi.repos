@@ -105,7 +105,7 @@ repositories:
     version: master
   opengv_catkin:
     type: git
-    url: git@github.com:nathanhhughes/opengv_catkin.git
+    url: git@github.com:RonghaiHe/opengv_catkin.git
     version: fix/march_native_optional
   pose_graph_tools:
     type: git
