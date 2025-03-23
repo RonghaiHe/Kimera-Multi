@@ -4,11 +4,12 @@ session_name: kimera-vio-example
 # CATKIN_WS: workspace of catkin
 # DATA_PATH: directory to save dataset(rosbag)
 # LOG_DIR: directory to save logs
+# ROBOT_NAME: name of the robot
 # NAME_TIME: name of the dataset
 
 environment:
-  ROBOT0: "acl_jackal"
-  ROSBAG0: "${DATA_PATH}/${NAME_TIME}_acl_jackal.bag"
+  ROBOT0: ${ROBOT_NAME}
+  ROSBAG0: "${DATA_PATH}/${NAME_TIME}_${ROBOT_NAME}.bag"
   RATE: "1.0"
   # NUM_ROBOTS: "6"
   # BOW_SKIP_NUM: "3"
@@ -40,7 +41,8 @@ windows:
           should_use_sim_time:=true \
           log_output:=true \
           log_output_path:=${LOG_DIR}/${ROBOT0}/single \
-          include_pipeline_flags:=true
+          include_pipeline_flags:=true \
+          run_stereo_dense:=true
       focus: true
     - |
       sleep 10
@@ -49,7 +51,7 @@ windows:
       input_ns:=${ROBOT0} \
       output_ns:=${ROBOT0} \
       rate:=${RATE}
-    - rviz -d $(rospack find kimera_distributed)/rviz/single_machine_one_robot.rviz
+    - sleep 5; rviz -d $(rospack find kimera_distributed)/rviz/single_machine_one_robot.rviz
     - roscore
     - | 
       source ~/miniconda3/bin/activate env3_9

@@ -4,7 +4,7 @@
  # @Author: Ronghai He
  # @Date: 2024-10-31 12:32:52
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-01-19 22:55:53
+ # @LastEditTime: 2025-03-13 16:41:21
  # @FilePath: /src/kimera_multi/examples/run_multi_times.sh
  # @Version: 
  # @Description: 
@@ -40,7 +40,7 @@ fi
 DIR_DEST="${DIR_ORIGIN}_/"
 
 # Loop to run the target script multiple times
-for i in {1..3}; do
+for i in {1..4}; do
     echo "Running iteration $i"
     gnome-terminal --title="run" -- /bin/bash -c "cd /media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws/src/kimera_multi/examples; bash $TARGET_SCRIPT"
     
@@ -50,11 +50,12 @@ for i in {1..3}; do
     # Check for Python script completion and cleanup
     while pgrep -f "evo_real_time.py" > /dev/null; do
         echo "Waiting for processing to complete..."
-        sleep 600
+        sleep 60
     done
     
     # Cleanup and prepare for next iteration
     tmux kill-server
+    mv "/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/${TIME2DATASET[$DATE]}/log_data_${DATE}" "${DIR_ORIGIN}"
     mv "$DIR_ORIGIN" "${DIR_ORIGIN}${i}"
     mv "${DIR_ORIGIN}${i}" "$DIR_DEST"
     

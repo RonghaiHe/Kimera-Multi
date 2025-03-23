@@ -3,7 +3,7 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2024-09-28 15:57:06
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-03-13 16:39:54
+LastEditTime: 2025-03-17 20:46:55
 FilePath: /src/kimera_multi/examples/evo_real_time.py
 Version: 
 Description: 
@@ -151,7 +151,7 @@ signal.signal(signal.SIGHUP, signal_handler)
 newest_file_num = 0
 
 
-def main(retry_count=100):
+def main(retry_count=10):
     args = parse_args()
     paths = setup_paths(args.date, args.log_dir, args.gt_dir, args.ape_dir)
 
@@ -386,8 +386,8 @@ def main(retry_count=100):
                 f'Exiting for {e}, which is in line {sys.exc_info()[-1].tb_lineno}')
 
             attempt += 1
-            if attempt >= retry_count:
-                print("Max retry attempts reached. Exiting.")
+            if attempt >= retry_count or e[:6] == 'Killed':
+                print("Max retry attempts or time reached. Exiting.")
                 plt.close('all')
                 for num in range(ROBOT_NUM):
                     ape_dict[ROBOT_NAMES[num]].to_csv(os.path.join(

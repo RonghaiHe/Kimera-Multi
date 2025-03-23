@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-01-10 18:25:06
+ # @LastEditTime: 2025-03-19 16:42:55
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -21,7 +21,7 @@ TIME2DATASET=(
 )    
 
 CATKIN_WS_="/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws"
-NAME_TIME_=${2:-"10_14"}
+NAME_TIME_=${2:-"12_07"}
 DATA_PATH_="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/"${TIME2DATASET[$NAME_TIME_]}
 LOG_DIR_=${DATA_PATH_}"/log_data_"$NAME_TIME_
 
@@ -45,7 +45,7 @@ else
     elif [ $1 = "0" ]; then
         # bash run.sh 1
         echo "Run the single example for test (single robot) of " $NAME_TIME_ 
-        CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} tmuxp load 1014-example_single.yaml
+        CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} ROBOT_NAME="acl_jackal2" tmuxp load 1014-example_single.yaml
     else
         echo "Invalid input"
     fi
