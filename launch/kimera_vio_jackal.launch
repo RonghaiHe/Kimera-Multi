@@ -27,7 +27,7 @@
 
   <!-- enable publishing but disable all GUIs -->
   <arg name="visualize"		      default="true"/>
-  <arg name="viz_type"                default="2" />
+  <arg name="viz_type"                default="0" />
   <arg name="use_rviz"                default="true"/>
 
   <!-- Other settings -->
