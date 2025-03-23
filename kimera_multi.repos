@@ -17,11 +17,11 @@ repositories:
     version: master
   dpgo:
     type: git
-    url: git@github.com:mit-acl/dpgo.git
+    url: git@github.com:RonghaiHe/dpgo.git
     version: main
   dpgo_ros:
     type: git
-    url: git@github.com:mit-acl/dpgo_ros.git
+    url: git@github.com:RonghaiHe/dpgo_ros.git
     version: main
   eigen_catkin:
     type: git
@@ -65,7 +65,7 @@ repositories:
     version: master
   kimera_rpgo:
     type: git
-    url: git@github.com:MIT-SPARK/Kimera-RPGO.git
+    url: git@github.com:RonghaiHe/Kimera-RPGO.git
     version: ccc7c3c
   kimera_rviz_markers:
     type: git
@@ -105,7 +105,7 @@ repositories:
     version: master
   opengv_catkin:
     type: git
-    url: git@github.com:nathanhhughes/opengv_catkin.git
+    url: git@github.com:RonghaiHe/opengv_catkin.git
     version: fix/march_native_optional
   pose_graph_tools:
     type: git
