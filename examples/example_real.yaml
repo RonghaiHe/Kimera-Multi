@@ -1,9 +1,14 @@
 session_name: kimera-distributed-example-real-world
 
+# Input:
+# CATKIN_WS: workspace of catkin
+# LOG_DIR: directory to save logs
+
 environment:
   NAME: "wp0"
-  RATE: "1.0"
+  ROBOT_ID: "0"
   NUM_ROBOTS: "3"
+  RATE: "1.0"
   BOW_SKIP_NUM: "3"
 
 options:
@@ -18,12 +23,14 @@ windows:
 
   panes:
     # frontend
-    - roslaunch kimera_distributed kimera_distributed.launch robot_id:=0 robot_name:=$NAME num_robots:=$NUM_ROBOTS log_output_path:=$LOG_DIR/$NAME/distributed
+    - roslaunch kimera_distributed kimera_distributed.launch robot_id:=${ROBOT_ID} robot_name:=$NAME num_robots:=$NUM_ROBOTS log_output_path:=$LOG_DIR/$NAME/distributed
     # dpgo
-    - roslaunch kimera_distributed dpgo.launch robot_id:=0 robot_name:=$NAME num_robots:=$NUM_ROBOTS multi_master:=false log_output_path:=$LOG_DIR/$NAME/distributed
+    - roslaunch kimera_distributed dpgo.launch robot_id:=${ROBOT_ID} robot_name:=$NAME num_robots:=$NUM_ROBOTS multi_master:=false log_output_path:=$LOG_DIR/$NAME/distributed
     # vio
-    - roslaunch kimera_multi kimera_vio_jackal.launch robot_name:=$NAME robot_id:=0 use_d455:=true multirobot:=true lcd_no_optimize:=true use_external_odom:=true replay:=true should_use_sim_time:=true
+    - roslaunch kimera_multi kimera_vio_jackal.launch robot_name:=$NAME robot_id:=${ROBOT_ID} use_d455:=true multirobot:=true lcd_no_optimize:=true use_external_odom:=true replay:=true should_use_sim_time:=true
+    # realsense camera(stereo)
+    - roslaunch realsense2_camera rs.camera.launch robot_id:=${ROBOT_ID} robot_name:=$NAME
     # rviz
-    rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
+    - rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
     # Press enter to kill
     - rosnode kill -a \
