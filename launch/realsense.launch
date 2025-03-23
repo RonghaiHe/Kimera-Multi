@@ -1,0 +1,38 @@
+<launch>
+    <arg name="robot_name"  doc="Namespace of the platform producing sensor data." />
+    <arg name="robot_id"    doc="ID of the platform producing sensor data." />
+    
+    <arg name="enable_sync" default="true" />
+    <arg name="unite_imu_method" default="copy" />
+    <arg name="enable_gyro" default="true" />
+    <arg name="enable_accel" default="true" />
+    <arg name="gyro_fps" default="200" /> <!--400/200-->
+    <arg name="accel_fps" default="200" /> <!--200/100-->
+    
+    <!-- stereo -->
+    <arg name="enable_infra" default="true" />
+    <arg name="enable_infra1" default="true" />
+    <arg name="enable_infra2" default="true" />
+    <arg name="infra_fps" default="30" /> <!--640*480: 30/15/5-->
+    <arg name="infra_width" default="640" />
+    <arg name="infra_height" default="480" />
+    
+    <!-- depth -->
+    <arg name="enable_depth" default="false" />
+    <arg name="depth_fps" default="-1" />
+    <arg name="depth_width" default="-1" />
+    <arg name="depth_height" default="-1" />
+
+    <!-- color -->
+    <arg name="enable_color" default="false" />
+    <arg name="color_fps" default="-1" />
+    <arg name="color_width" default="-1" />
+    <arg name="color_height" default="-1" />
+
+    <group ns="$(arg robot_name)" >
+        <include file="$(find realsense2_camera)/launch/rs_camera.launch"  pass_all_args="true"/>
+            <remap from="/camera/imu" to="/$(arg robot_name)/forward/imu">
+            <remap from="/camera/infra1/image_rect_raw" to="/$(arg robot_name)/forward/infra1/image_rect_raw">
+            <remap from="/camera/infra2/image_rect_raw" to="/$(arg robot_name)/forward/infra2/image_rect_raw">
+    </group>
+</launch>
