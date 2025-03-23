@@ -17,11 +17,11 @@ repositories:
     version: master
   dpgo:
     type: git
-    url: git@github.com:mit-acl/dpgo.git
+    url: git@github.com:RonghaiHe/dpgo.git
     version: main
   dpgo_ros:
     type: git
-    url: git@github.com:mit-acl/dpgo_ros.git
+    url: git@github.com:RonghaiHe/dpgo_ros.git
     version: main
   eigen_catkin:
     type: git
