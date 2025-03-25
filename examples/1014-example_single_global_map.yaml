@@ -1,0 +1,74 @@
+session_name: kimera-vio-example
+
+# Input:
+# CATKIN_WS: workspace of catkin
+# DATA_PATH: directory to save dataset(rosbag)
+# LOG_DIR: directory to save logs
+# ROBOT_NAME: name of the robot
+# NAME_TIME: name of the dataset
+
+environment:
+  ROBOT0: ${ROBOT_NAME}
+  ROSBAG0: "${DATA_PATH}/${NAME_TIME}_${ROBOT_NAME}.bag"
+  RATE: "1.0"
+  # NUM_ROBOTS: "6"
+  # BOW_SKIP_NUM: "3"
+
+options:
+  default-command: /bin/bash
+
+windows:
+- window_name: $ROBOT0
+  focus: true  
+  layout: main-horizontal
+  shell_command_before:
+    - source ${CATKIN_WS}/devel/setup.bash
+    - rm -rf ${LOG_DIR}/
+    - mkdir -p ${LOG_DIR}/${ROBOT0}/single
+
+  panes:
+    - pane_name: VIO
+      shell_command:
+        - |
+          sleep 5; roslaunch kimera_multi kimera_vio_jackal.launch \
+          robot_name:=${ROBOT0} \
+          robot_id:=0 \
+          use_d455:=true \
+          multirobot:=false \
+          lcd_no_optimize:=true \
+          use_external_odom:=true \
+          replay:=true \
+          should_use_sim_time:=true \
+          log_output:=true \
+          log_output_path:=${LOG_DIR}/${ROBOT0}/single \
+          include_pipeline_flags:=true \
+          run_stereo_dense:=true
+      focus: true
+    - |
+      sleep 5
+      roslaunch kimera_semantics_ros kimera_semantics_euroc.launch \
+      sensor_frame:=${ROBOT0}/realsense_base \
+      world_frame:=${ROBOT0}/odom \
+      metric_semantic_reconstruction:=false \
+      left_cam_info_topic:=/${ROBOT0}/forward/infra1/camera_info \
+      left_cam_topic:=/${ROBOT0}/forward/infra1/image_rect_raw \
+      right_cam_info_topic:=/${ROBOT0}/forward/infra2/camera_info \
+      right_cams_topic:=/${ROBOT0}/forward/infra2/image_rect_raw
+      left_cam_depth_topic:=/dev/null
+    # - sleep 5; roslaunch kimera_pgmo kimera_pgmo.launch dataset:=Jackal robot_name:=acl_jackal2 
+    - |
+      sleep 10
+      roslaunch kimera_distributed mit_rosbag.launch \
+      bagfile:=${ROSBAG0} \
+      input_ns:=${ROBOT0} \
+      output_ns:=${ROBOT0} \
+      rate:=${RATE}
+    - sleep 5; rviz -d $(rospack find kimera_distributed)/rviz/single_machine_one_robot.rviz
+    - roscore
+    - | 
+      source ~/miniconda3/bin/activate env3_9
+      python $CATKIN_WS/src/kimera_multi/examples/evo_real_time.py \
+      --date ${NAME_TIME}
+    - rosnode kill -a; pkill -f evo_real_time.py\
+  options:
+    main-pane-height: 50

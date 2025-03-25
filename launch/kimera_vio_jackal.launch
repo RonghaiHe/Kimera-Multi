@@ -7,6 +7,10 @@
   <arg name="replay"      default="false" />
   <arg name="verbosity"   default="0"/>
 
+  <arg name="debug_dense" default="true"/>
+  <arg name="launch_prefix" value="" unless="$(arg debug_dense)"/>
+  <arg name="launch_prefix" value="gdb -ex run --args" if="$(arg debug_dense)"/>
+
   <arg name="include_pipeline_args" default="false" />
 
   <!-- BoW vector publishing for Kimera-Multi -->
@@ -53,6 +57,36 @@
   <arg name="left_cam_frame_id"   value="$(arg robot_name)/forward_infra1_optical_frame"/>
   <arg name="right_cam_frame_id"  value="$(arg robot_name)/forward_infra2_optical_frame"/>
 
+  <!-- Perform stereo dense reconstruction? -->
+  <arg name="run_stereo_dense"     default="false"/>
+  <group ns="stereo_gray" if="$(arg run_stereo_dense)">
+    <!-- StereoSGBM -->
+    <node name="dense_stereo" pkg="image_undistort" type="dense_stereo_node" launch-prefix="$(arg launch_prefix)" >
+      <param name="input_camera_info_from_ros_params" value="true"/>
+      <param name="first_camera_namespace"  value="cam0"/>
+      <param name="second_camera_namespace" value="cam1"/>
+      <param name="first_output_frame"      value="$(arg left_cam_frame_id)"/>
+      <param name="second_output_frame"     value="$(arg right_cam_frame_id)"/>
+
+      <param name="depth/use_sgbm"          value="true"/>
+      <param name="depth/do_median_blur"    value="false"/>
+      <param name="depth/use_mode_HH"       value="true"/>
+
+      <param name="scale"                   value="1.0"/>
+      <param name="process_every_nth_frame" value="1"/>
+      <param name="publish_tf"              value="false"/>
+
+      <rosparam file="$(find kimera_multi)/cfg/calib/d455_camchain.yaml"/>
+      <param name="cam0/rostopic" value="/$(arg robot_name)/forward/infra1/image_rect_raw"/>
+      <param name="cam1/rostopic" value="/$(arg robot_name)/forward/infra2/image_rect_raw"/>
+
+      <remap from="raw/first/image"         to="/$(arg robot_name)/forward/infra1/image_rect_raw"/>
+      <remap from="raw/second/image"        to="/$(arg robot_name)/forward/infra2/image_rect_raw"/>
+      <remap from="raw/first/camera_info"   to="/$(arg robot_name)/forward/infra1/camera_info"/>
+      <remap from="raw/second/camera_info"  to="/$(arg robot_name)/forward/infra2/camera_info"/>
+    </node>
+  </group>
+  
   <!-- Launch actual pipeline -->
   <group ns="$(arg robot_name)" >
     <include file="$(find kimera_vio_ros)/launch/kimera_vio_ros.launch"  pass_all_args="true"/>
