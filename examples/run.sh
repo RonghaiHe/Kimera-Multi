@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-03-24 20:09:53
+ # @LastEditTime: 2025-03-26 15:14:06
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -26,8 +26,8 @@ DATA_PATH_="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/"${TIME2
 LOG_DIR_=${DATA_PATH_}"/log_data_"$NAME_TIME_
 
 # If no input, Run the example
-# ./run.sh or ./run.sh 2 or ./run.sh 2 12_07
-if [ $# -eq 0 -o "$1" = "2" ]; then
+# ./run.sh or ./run.sh 6 or ./run.sh 6 12_07
+if [ $# -eq 0 -o "$1" = "6" ]; then
     # bash run.sh
     echo "No input, run the CSLAM example of " $NAME_TIME_
     CATKIN_WS=${CATKIN_WS_} \
@@ -35,6 +35,12 @@ if [ $# -eq 0 -o "$1" = "2" ]; then
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
     tmuxp load 1014-example.yaml
+
+# ./run.sh 0 or ./run.sh 0 12_08
+elif [ $1 = "2" ]; then
+    # bash run.sh 1
+    echo "Run the CSLAM example with mapping for 2 robots of " $NAME_TIME_ 
+    CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} tmuxp load 1014-example2.yaml
 
 # ./run.sh 1 or ./run.sh 1 12_08
 elif [ $1 = "1" ]; then
@@ -45,7 +51,7 @@ elif [ $1 = "1" ]; then
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "0" ]; then
     # bash run.sh 1
-    echo "Run the single example for test (single robot) of " $NAME_TIME_ 
+    echo "Run the single example for test mapping (single robot) of " $NAME_TIME_ 
     CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} ROBOT_NAME="acl_jackal2" tmuxp load 1014-example_single_global_map.yaml
 
 # ./run.sh 00 or ./run.sh 00 12_08

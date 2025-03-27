@@ -59,7 +59,7 @@
 
   <!-- Perform stereo dense reconstruction? -->
   <arg name="run_stereo_dense"     default="false"/>
-  <group ns="stereo_gray" if="$(arg run_stereo_dense)">
+  <group ns="$(arg robot_name)/stereo_gray" if="$(arg run_stereo_dense)">
     <!-- StereoSGBM -->
     <node name="dense_stereo" pkg="image_undistort" type="dense_stereo_node" launch-prefix="$(arg launch_prefix)" >
       <param name="input_camera_info_from_ros_params" value="true"/>
@@ -96,6 +96,8 @@
     <!-- for arl jackals -->
     <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_realsense" args="0 0.5 -0.2 1.59 -1.59 0 $(arg robot_name)/realsense_base $(arg robot_name)/base" /> -->
 
+    <!-- static transform from each odom to global -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="odom_to_global" args="0 0 0 0 0 1 world $(arg robot_name)/map" />
 
     <!-- Decompress images -->
     <node if="$(arg replay)" pkg="image_transport" type="republish" name="left_img_decompress" 

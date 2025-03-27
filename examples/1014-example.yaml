@@ -95,7 +95,7 @@ windows:
     - sleep 15; roslaunch kimera_distributed mit_rosbag.launch bagfile:=$ROSBAG3 input_ns:=$ROBOT3 output_ns:=$ROBOT3 rate:=$RATE
     - sleep 15; roslaunch kimera_distributed mit_rosbag.launch bagfile:=$ROSBAG4 input_ns:=$ROBOT4 output_ns:=$ROBOT4 rate:=$RATE
     - sleep 15; roslaunch kimera_distributed mit_rosbag.launch bagfile:=$ROSBAG5 input_ns:=$ROBOT5 output_ns:=$ROBOT5 rate:=$RATE
-    - sleep 15; rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
+    - sleep 5; rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
     - roscore
     - source ~/miniconda3/bin/activate env3_9; python $CATKIN_WS/src/kimera_multi/examples/evo_real_time.py --date $NAME_TIME
     # - bash del_poses_files.sh $LOG_DIR $DATA_PATH/Kimera-Multi-Public-Data/ground_truth/ $NAME_TIME
