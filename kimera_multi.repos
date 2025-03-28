@@ -13,7 +13,7 @@ repositories:
     version: master
   dbow2_catkin:
     type: git
-    url: git@github.com:MIT-SPARK/dbow2_catkin.git
+    url: git@github.com:RonghaiHe/dbow2_catkin.git
     version: master
   dpgo:
     type: git
@@ -50,30 +50,30 @@ repositories:
   kimera_distributed:
     type: git
     url: git@github.com:RonghaiHe/Kimera-Distributed.git
-    version: main
+    version: features/main
   kimera_multi_lcd:
     type: git
     url: git@github.com:RonghaiHe/Kimera-Multi-LCD.git
-    version: main
+    version: features/main
   kimera_pgmo:
     type: git
     url: git@github.com:RonghaiHe/Kimera-PGMO.git
-    version: master
+    version: ubuntu18
   kimera_ros:
     type: git
     url: git@github.com:RonghaiHe/Kimera-VIO-ROS.git
-    version: master
+    version: features/main
   kimera_rpgo:
     type: git
     url: git@github.com:RonghaiHe/Kimera-RPGO.git
-    version: ccc7c3c
+    version: master
   kimera_rviz_markers:
     type: git
     url: git@github.com:ToniRV/kimera_rviz_markers.git
     version: master
   kimera_semantics:
     type: git
-    url: git@github.com:MIT-SPARK/Kimera-Semantics.git
+    url: git@github.com:RonghaiHe/Kimera-Semantics.git
     version: feature/noetic_fixes
   kimera_vio:
     type: git
