@@ -5,8 +5,8 @@
  # @Author: Ronghai He
  # @Date: 2025-02-09 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-02-09 15:59:25
- # @FilePath: /src/kimera_multi/examples/run.sh
+ # @LastEditTime: 2025-03-24 16:46:09
+ # @FilePath: /src/kimera_multi/examples/run_euroc.sh
  # @Version: 
  # @Description: This script runs different SLAM examples for EuRoC based on the input argument.
  # @Example: ./run.sh 2 12_07 | ./run.sh | ./run.sh 0
@@ -60,6 +60,17 @@ elif [ $1 = "1" ]; then
 
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "0" ]; then
+    # bash run.sh 1
+    echo "Run the single example for test (single robot) of " $NAME_SCENE_ 
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    DATASET=${SCENE2DATASET[$NAME_SCENE_]} \
+    DIR_GT=${DIR_GT_} \
+    tmuxp load euroc_single_global_map.yaml
+
+# ./run.sh 00 or ./run.sh 00 12_08
+elif [ $1 = "00" ]; then
     # bash run.sh 1
     echo "Run the single example for test (single robot) of " $NAME_SCENE_ 
     CATKIN_WS=${CATKIN_WS_} \

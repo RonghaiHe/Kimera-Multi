@@ -1,0 +1,74 @@
+session_name: kimera-vio-euroc
+
+# Input:
+# CATKIN_WS: workspace of catkin
+# DATA_PATH: directory to save dataset(rosbag)
+# LOG_DIR: directory to save logs
+# DATASET: name of the dataset
+# DIR_GT directory name of GT
+
+environment:
+  ROBOT0: "MAV_${DATASET}"
+  ROSBAG0: "${DATA_PATH}/${DATASET}.bag"
+  RATE: "1.0"
+  # NUM_ROBOTS: "6"
+  # BOW_SKIP_NUM: "3"
+
+options:
+  default-command: /bin/bash
+
+windows:
+- window_name: $ROBOT0
+  focus: true  
+  layout: main-horizontal
+  shell_command_before:
+    - source ${CATKIN_WS}/devel/setup.bash
+    - rm -rf ${LOG_DIR}/
+    - mkdir -p ${LOG_DIR}/${ROBOT0}/single
+
+  panes:
+    - pane_name: VIO
+      shell_command:
+        - |
+          # sleep 3; roslaunch kimera_multi kimera_vio_ros_euroc_multi.launch \
+          # robot_name:=${ROBOT0} \
+          # robot_id:=0 \
+          # use_d455:=false \
+          # multirobot:=false \
+          # lcd_no_optimize:=true \
+          # use_external_odom:=false \
+          # replay:=true \
+          # should_use_sim_time:=true \
+          # log_output:=true \
+          # log_output_path:=${LOG_DIR}/${ROBOT0}/single \
+          # include_pipeline_flags:=true \
+          # run_stereo_dense:=true
+          sleep 5; roslaunch kimera_vio_ros kimera_vio_ros_euroc.launch \
+          online:=true \
+          include_pipeline_flags:=true \
+          left_cam_topic:=/${ROBOT0}/cam0/image_raw \
+          right_cam_topic:=/${ROBOT0}/cam1/image_raw \
+          imu_topic:=/${ROBOT0}/imu0 \
+          run_stereo_dense:=false
+      focus: true
+    - |
+      sleep 15
+      roslaunch kimera_distributed euroc_rosbag.launch \
+      bagfile:=${ROSBAG0} \
+      output_ns:=${ROBOT0} \
+      rate:=${RATE}
+    - roscore
+    - sleep 5; rviz -d $(rospack find kimera_vio_ros)/rviz/kimera_vio_euroc.rviz
+    - sleep 5; roslaunch kimera_semantics_ros kimera_semantics_euroc.launch
+    - sleep 5; rviz -d $(rospack find kimera_semantics_ros)/rviz/kimera_semantics_euroc.rviz
+    - | 
+      source ~/miniconda3/bin/activate env3_9
+      python $CATKIN_WS/src/kimera_multi/examples/evo_real_time.py \
+      --flag_multi 0 \
+      --dataset EuRoC \
+      --log_dir ${LOG_DIR}/${ROBOT0}/single \
+      --gt_dir ${DATA_PATH}/mav0/${DIR_GT} \
+      --ape_dir /media/sysu/Data/EuRoC/${DATASET}/test_single
+    - rosnode kill -a; pkill -f evo_real_time.py\
+  options:
+    main-pane-height: 50
