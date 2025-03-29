@@ -18,20 +18,18 @@
     
     <!-- depth -->
     <arg name="enable_depth" default="false" />
-    <arg name="depth_fps" default="-1" />
+    <arg name="depth_fps" default="-1" /><!--640*480: 30/15/5-->
     <arg name="depth_width" default="-1" />
     <arg name="depth_height" default="-1" />
 
     <!-- color -->
     <arg name="enable_color" default="false" />
-    <arg name="color_fps" default="-1" />
+    <arg name="color_fps" default="-1" /><!--640*480: 30/15/5-->
     <arg name="color_width" default="-1" />
     <arg name="color_height" default="-1" />
 
-    <group ns="$(arg robot_name)" >
-        <include file="$(find realsense2_camera)/launch/rs_camera.launch"  pass_all_args="true"/>
-            <!-- <remap from="/camera/imu" to="/$(arg robot_name)/forward/imu">
-            <remap from="/camera/infra1/image_rect_raw" to="/$(arg robot_name)/forward/infra1/image_rect_raw">
-            <remap from="/camera/infra2/image_rect_raw" to="/$(arg robot_name)/forward/infra2/image_rect_raw"> -->
-    </group>
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch" ns="$(arg robot_name)" pass_all_args="true"/>
+        <!-- <remap from="/camera/imu" to="/$(arg robot_name)/forward/imu">
+        <remap from="/camera/infra1/image_rect_raw" to="/$(arg robot_name)/forward/infra1/image_rect_raw">
+        <remap from="/camera/infra2/image_rect_raw" to="/$(arg robot_name)/forward/infra2/image_rect_raw"> -->
 </launch>
