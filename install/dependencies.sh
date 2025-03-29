@@ -20,4 +20,4 @@ apt install -y ros-${ROS_DISTRO}-pcl-ros ros-${ROS_DISTRO}-tf-conversions ros-${
 apt install -y ros-${ROS_DISTRO}-ompl ros-${ROS_DISTRO}-image-transport-plugins
 apt-get install -y build-essential cmake-gui libsuitesparse-dev
 
-pip install vcstool empy==3.3.4 catkin_pkg numpy
+pip3 install vcstool empy==3.3.4 catkin_pkg numpy
