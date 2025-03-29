@@ -10,9 +10,8 @@
  # @Description: 
  # 
 ### 
-CATKIN_WS="/home/robot/kimera_multi_ws" 
-LOG_DIR="/home/robot/dataset/S3E/log_data" 
-DATA_PATH="/home/robot/dataset/S3E"
-ROSBAG="v1_campus_road"
-
+CATKIN_WS="/home/robot/kimera_multi_ws" \
+LOG_DIR="/home/robot/dataset/S3E/log_data" \ 
+DATA_PATH="/home/robot/dataset/S3E" \
+ROSBAG="v1_campus_road" \
 tmuxp load $CATKIN_WS/src/kimera_multi/examples/s3e.yaml

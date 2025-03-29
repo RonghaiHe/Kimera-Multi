@@ -1,9 +1,7 @@
 <launch>
     <arg name="robot_name" default="wp0" doc="Namespace of the platform producing sensor data." />
-    <arg name="scale_linear" default="1">
-    <arg name="scale_angular" default="2">
+    <arg name="scale_linear" default="1" />
+    <arg name="scale_angular" default="2" />
 
-    <group ns="$(arg robot_name)" >
-        <include file="$(find wpb_move)/launch/js_ctrl.launch" pass_all_args="true" />
-    </group>
+    <include file="$(find wpb_move)/launch/js_ctrl.launch" ns="$(arg robot_name)" pass_all_args="true" />
 </launch>

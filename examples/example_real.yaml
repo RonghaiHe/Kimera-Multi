@@ -53,7 +53,8 @@ windows:
     # UWB
     - roslaunch kimera_multi nooploop_uwb.launch robot_name:=$NAME
     # control
-    - roslaunch kimera_multi wpb_control.launch \
+    - |
+      roslaunch kimera_multi wpb_control.launch \
       robot_name:=$NAME \
       scale_linear:=1 \
       scale_angular:=2
