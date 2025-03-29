@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2025-02-09 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-03-24 16:46:09
+ # @LastEditTime: 2025-03-29 15:50:13
  # @FilePath: /src/kimera_multi/examples/run_euroc.sh
  # @Version: 
  # @Description: This script runs different SLAM examples for EuRoC based on the input argument.
@@ -46,7 +46,7 @@ if [ $# -eq 0 -o "$1" = "2" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     DATASET=${SCENE2DATASET[$NAME_SCENE_]} \
-    tmuxp load euroc_multi.yaml
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/euroc_multi.yaml
 
 # ./run.sh 1 or ./run.sh 1 12_08
 elif [ $1 = "1" ]; then
@@ -56,7 +56,7 @@ elif [ $1 = "1" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     DATASET=${SCENE2DATASET[$NAME_SCENE_]} \
-    tmuxp load euroc_single6.yaml
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/euroc_single6.yaml
 
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "0" ]; then
@@ -67,7 +67,7 @@ elif [ $1 = "0" ]; then
     LOG_DIR=${LOG_DIR_} \
     DATASET=${SCENE2DATASET[$NAME_SCENE_]} \
     DIR_GT=${DIR_GT_} \
-    tmuxp load euroc_single_global_map.yaml
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/euroc_single_global_map.yaml
 
 # ./run.sh 00 or ./run.sh 00 12_08
 elif [ $1 = "00" ]; then
@@ -78,7 +78,7 @@ elif [ $1 = "00" ]; then
     LOG_DIR=${LOG_DIR_} \
     DATASET=${SCENE2DATASET[$NAME_SCENE_]} \
     DIR_GT=${DIR_GT_} \
-    tmuxp load euroc_single.yaml
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/euroc_single.yaml
 else
     echo "Invalid input"
 fi

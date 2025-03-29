@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-03-26 15:14:06
+ # @LastEditTime: 2025-03-29 15:48:53
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -34,31 +34,49 @@ if [ $# -eq 0 -o "$1" = "6" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
-    tmuxp load 1014-example.yaml
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example.yaml
 
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "2" ]; then
     # bash run.sh 1
     echo "Run the CSLAM example with mapping for 2 robots of " $NAME_TIME_ 
-    CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} tmuxp load 1014-example2.yaml
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example2.yaml
 
 # ./run.sh 1 or ./run.sh 1 12_08
 elif [ $1 = "1" ]; then
     # bash run.sh 0
     echo "Run the single SLAM example for multi-robot of " $NAME_TIME_
-    CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} tmuxp load 1014-example_single6.yaml
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single6.yaml
 
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "0" ]; then
     # bash run.sh 1
     echo "Run the single example for test mapping (single robot) of " $NAME_TIME_ 
-    CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} ROBOT_NAME="acl_jackal2" tmuxp load 1014-example_single_global_map.yaml
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    ROBOT_NAME="acl_jackal2" \
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single_global_map.yaml
 
 # ./run.sh 00 or ./run.sh 00 12_08
 elif [ $1 = "00" ]; then
     # bash run.sh 1
     echo "Run the single example for test (single robot) of " $NAME_TIME_ 
-    CATKIN_WS=${CATKIN_WS_} DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} NAME_TIME=${NAME_TIME_} ROBOT_NAME="acl_jackal2" tmuxp load 1014-example_single.yaml
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    ROBOT_NAME="acl_jackal2" \
+    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single.yaml
 else
     echo "Invalid input"
 fi
