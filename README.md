@@ -1,5 +1,9 @@
 This is a **forked repository**(Special for Ubuntu 18.04). Here are some changes:
 
+2025/03/
+- Add information for real-world experiments with RealSense Camera and NoopLoop UWB. Before that, make sure that realsense SDK and UWb driver deployment are installed, read [Linux Ubuntu Installation about realsense SDK](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md) for details. If "Unable to locate package librealsense2-dkms", please refer to this [answer](https://github.com/IntelRealSense/librealsense/issues/13754#issuecomment-2647672708).
+- Add launch files for real-world and dataset
+
 2024/08/26:
 - Modify `Kimera-RPGO` and `Kimera-VIO-ROS`
 
@@ -10,8 +14,8 @@ This is a **forked repository**(Special for Ubuntu 18.04). Here are some changes
 - Modify 1014-example.yaml to run `examples/del_poses_files.sh` simutaneously
 
 TODO:
-- [ ] Modify codes about output format to run `evo`
-- [ ] Add `.yaml` file to run euroc dataset. A [reference](https://github.com/MIT-SPARK/Kimera-Multi/issues/9).
+- [x] Modify codes about output format to run `evo`
+- [x] Add `.yaml` file to run euroc dataset. A [reference](https://github.com/MIT-SPARK/Kimera-Multi/issues/9).
 
 I have added a `run.sh` file to run `1014-example.yaml` without uploading due to privacy and the path below need to be modified:
 ```shell
@@ -57,15 +61,19 @@ The experiments described by the authors in the paper were done on Ubuntu 18.04 
 System has since been updated and now assumes Ubuntu 20.04 and ROS Noetic.
 ```
 # Create workspace
-mkdir -p catkin_ws/src
-cd catkin_ws/src/
-git clone git@github.com:MIT-SPARK/Kimera-Multi.git kimera_multi
+mkdir -p kimera_multi_ws/src
+cd kimera_multi_ws/src/
+git clone git@github.com:RonghaiHe/Kimera-Multi.git kimera_multi --branch ubuntu18
 
 # If you do not have these dependencies already
 sudo bash kimera_multi/install/dependencies.sh
 
 # For full install
 vcs import . --input kimera_multi/kimera_multi.repos --recursive
+
+# For real-world application with RealSense camera and NoopLoop UWB
+vcs import . --input kimera_multi/kimera_multi_real_world.repos --recursive
+sudo apt-get install -y ros-melodic-ddynamic-reconfigure ros-melodic-joy
 
 cd ..
 # Configure build options and build!
