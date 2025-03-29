@@ -7,3 +7,7 @@ repositories:
     type: git
     url: git@github.com:IntelRealSense/realsense-ros.git
     version: ros1-legacy
+  wpb_move:
+    type: git
+    url: git@github.com:RonghaiHe/wpb_move.git
+    version: main
