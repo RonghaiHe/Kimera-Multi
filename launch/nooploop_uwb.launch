@@ -1,0 +1,7 @@
+<launch>
+    <arg name="robot_name" default="wp0" doc="Namespace of the platform producing sensor data." />
+
+    <group ns="$(arg robot_name)" >
+        <include file="$(find nlink_parser)/launch/linktrack.launch" />
+    </group>
+</launch>

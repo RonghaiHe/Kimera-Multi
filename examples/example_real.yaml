@@ -23,14 +23,41 @@ windows:
 
   panes:
     # frontend
-    - roslaunch kimera_distributed kimera_distributed.launch robot_id:=${ROBOT_ID} robot_name:=$NAME num_robots:=$NUM_ROBOTS log_output_path:=$LOG_DIR/$NAME/distributed
+    - |
+      roslaunch kimera_distributed kimera_distributed.launch \
+      robot_id:=${ROBOT_ID} \
+      robot_name:=$NAME \
+      num_robots:=$NUM_ROBOTS \
+      log_output_path:=$LOG_DIR/$NAME/distributed
     # dpgo
-    - roslaunch kimera_distributed dpgo.launch robot_id:=${ROBOT_ID} robot_name:=$NAME num_robots:=$NUM_ROBOTS multi_master:=false log_output_path:=$LOG_DIR/$NAME/distributed
+    - |
+      roslaunch kimera_distributed dpgo.launch \
+      robot_id:=${ROBOT_ID} \
+      robot_name:=$NAME \
+      num_robots:=$NUM_ROBOTS \
+      multi_master:=false \
+      log_output_path:=$LOG_DIR/$NAME/distributed
     # vio
-    - roslaunch kimera_multi kimera_vio_jackal.launch robot_name:=$NAME robot_id:=${ROBOT_ID} use_d455:=true multirobot:=true lcd_no_optimize:=true use_external_odom:=true replay:=true should_use_sim_time:=true
-    # realsense camera(stereo)
-    - roslaunch realsense2_camera rs.camera.launch robot_id:=${ROBOT_ID} robot_name:=$NAME
+    - |
+      roslaunch kimera_multi kimera_vio_jackal.launch \
+      robot_name:=$NAME \
+      robot_id:=${ROBOT_ID} \
+      use_d455:=true \
+      multirobot:=true \
+      lcd_no_optimize:=true \
+      use_external_odom:=true \ 
+      replay:=true \
+      should_use_sim_time:=true
+    # camera(stereo)
+    - roslaunch kimera_multi realsense_vio.launch robot_name:=$NAME
+    # UWB
+    - roslaunch kimera_multi nooploop_uwb.launch robot_name:=$NAME
+    # control
+    - roslaunch kimera_multi wpb_control.launch \
+      robot_name:=$NAME \
+      scale_linear:=1 \
+      scale_angular:=2
     # rviz
-    - rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
+    # - rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
     # Press enter to kill
     - rosnode kill -a \
