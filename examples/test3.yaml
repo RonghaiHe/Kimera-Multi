@@ -9,12 +9,12 @@ session_name: kimera-distributed-example
 environment:
   ROBOT0: "wp0"
   ROBOT1: "wp1"
-  ROBOT2: "wp2"
+  # ROBOT2: "wp2"
   ROSBAG0: "$DATA_PATH/wp0_test.bag"
   ROSBAG1: "$DATA_PATH/wp1_test.bag"
-  ROSBAG2: "$DATA_PATH/wp1_test.bag"
-  RATE: "1.0"
-  NUM_ROBOTS: "3"
+  # ROSBAG2: "$DATA_PATH/wp1_test.bag"
+  RATE: "0.5"
+  NUM_ROBOTS: "2"
   BOW_SKIP_NUM: "3"
 
 options:
@@ -29,16 +29,16 @@ windows:
     - rm -rf $LOG_DIR
     - mkdir -p $LOG_DIR/$ROBOT0/distributed
     - mkdir -p $LOG_DIR/$ROBOT1/distributed
-    - mkdir -p $LOG_DIR/$ROBOT2/distributed
+    # - mkdir -p $LOG_DIR/$ROBOT2/distributed
     - mkdir -p $LOG_DIR/$ROBOT0/single
     - mkdir -p $LOG_DIR/$ROBOT1/single
-    - mkdir -p $LOG_DIR/$ROBOT2/single
+    # - mkdir -p $LOG_DIR/$ROBOT2/single
     - sleep 5;
 
   panes:
     - roslaunch kimera_distributed kimera_distributed.launch robot_id:=0 robot_name:=$ROBOT0 num_robots:=$NUM_ROBOTS dataset_name:=Jackal log_output_path:=$LOG_DIR/$ROBOT0/distributed random_seed:=0
     - roslaunch kimera_distributed kimera_distributed.launch robot_id:=1 robot_name:=$ROBOT1 num_robots:=$NUM_ROBOTS dataset_name:=Jackal log_output_path:=$LOG_DIR/$ROBOT1/distributed random_seed:=1
-    - roslaunch kimera_distributed kimera_distributed.launch robot_id:=2 robot_name:=$ROBOT2 num_robots:=$NUM_ROBOTS dataset_name:=Jackal log_output_path:=$LOG_DIR/$ROBOT2/distributed random_seed:=2
+    # - roslaunch kimera_distributed kimera_distributed.launch robot_id:=2 robot_name:=$ROBOT2 num_robots:=$NUM_ROBOTS dataset_name:=Jackal log_output_path:=$LOG_DIR/$ROBOT2/distributed random_seed:=2
 
 - window_name: dpgo
   layout: tiled
@@ -49,7 +49,7 @@ windows:
   panes:
     - roslaunch kimera_distributed dpgo.launch robot_id:=0 robot_name:=$ROBOT0 num_robots:=$NUM_ROBOTS dataset_name:=Jackal multi_master:=false log_output_path:=$LOG_DIR/$ROBOT0/distributed random_seed:=6
     - roslaunch kimera_distributed dpgo.launch robot_id:=1 robot_name:=$ROBOT1 num_robots:=$NUM_ROBOTS dataset_name:=Jackal multi_master:=false log_output_path:=$LOG_DIR/$ROBOT1/distributed random_seed:=7
-    - roslaunch kimera_distributed dpgo.launch robot_id:=2 robot_name:=$ROBOT2 num_robots:=$NUM_ROBOTS dataset_name:=Jackal multi_master:=false log_output_path:=$LOG_DIR/$ROBOT2/distributed random_seed:=8
+    # - roslaunch kimera_distributed dpgo.launch robot_id:=2 robot_name:=$ROBOT2 num_robots:=$NUM_ROBOTS dataset_name:=Jackal multi_master:=false log_output_path:=$LOG_DIR/$ROBOT2/distributed random_seed:=8
 
 - window_name: vio
   layout: tiled  
@@ -68,7 +68,7 @@ windows:
       use_external_odom:=false \
       replay:=true \
       should_use_sim_time:=true \
-      log_output:=true \
+      log_output:=false \
       log_output_path:=$LOG_DIR/$ROBOT0/single \
       include_pipeline_flags:=true \
       run_stereo_dense:=false
@@ -82,24 +82,24 @@ windows:
       use_external_odom:=false \
       replay:=true \
       should_use_sim_time:=true \
-      log_output:=true \
+      log_output:=false \
       log_output_path:=$LOG_DIR/$ROBOT1/single \
       include_pipeline_flags:=true \
       run_stereo_dense:=false
-    - |
-      roslaunch kimera_multi kimera_vio_wpb.launch \
-      robot_name:=$ROBOT2 \
-      robot_id:=1 \
-      use_d455:=true \
-      multirobot:=true \
-      lcd_no_optimize:=true \
-      use_external_odom:=false \
-      replay:=true \
-      should_use_sim_time:=true \
-      log_output:=true \
-      log_output_path:=$LOG_DIR/$ROBOT2/single \
-      include_pipeline_flags:=true \
-      run_stereo_dense:=false
+    # - |
+    #   roslaunch kimera_multi kimera_vio_wpb.launch \
+    #   robot_name:=$ROBOT2 \
+    #   robot_id:=1 \
+    #   use_d455:=true \
+    #   multirobot:=true \
+    #   lcd_no_optimize:=true \
+    #   use_external_odom:=false \
+    #   replay:=true \
+    #   should_use_sim_time:=true \
+    #   log_output:=true \
+    #   log_output_path:=$LOG_DIR/$ROBOT2/single \
+    #   include_pipeline_flags:=true \
+    #   run_stereo_dense:=false
 
 - window_name: data
   focus: true  
@@ -110,9 +110,9 @@ windows:
   panes:
     - sleep 15; roslaunch kimera_distributed sysu_rosbag.launch bagfile:=$ROSBAG0 robot_name:=$ROBOT0 rate:=$RATE publish_clock:=true
     - sleep 15; roslaunch kimera_distributed sysu_rosbag.launch bagfile:=$ROSBAG1 robot_name:=$ROBOT1 rate:=$RATE
-    - sleep 15; roslaunch kimera_distributed sysu_rosbag.launch bagfile:=$ROSBAG2 robot_name:=$ROBOT2 rate:=$RATE
+    # - sleep 15; roslaunch kimera_distributed sysu_rosbag.launch bagfile:=$ROSBAG2 robot_name:=$ROBOT2 rate:=$RATE
     # - sleep 5; rviz -d $(rospack find kimera_distributed)/rviz/single_machine2.rviz
-    - roscore
+    # - roscore
     # - source ~/miniconda3/bin/activate env3_9; python $CATKIN_WS/src/kimera_multi/examples/evo_real_time.py --date $NAME_TIME
     # - bash del_poses_files.sh $LOG_DIR $DATA_PATH/Kimera-Multi-Public-Data/ground_truth/ $NAME_TIME
-    - rosnode kill -a  & pkill -f evo_real_time.py\
+    # - rosnode kill -a  & pkill -f evo_real_time.py\
