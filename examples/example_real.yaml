@@ -5,8 +5,8 @@ session_name: kimera-distributed-example-real-world
 # LOG_DIR: directory to save logs
 
 environment:
-  NAME: "wp0"
-  ROBOT_ID: "0"
+  NAME: "wp0" # !!! custom
+  ROBOT_ID: "0" # !!! custom
   NUM_ROBOTS: "3"
   RATE: "1.0"
   BOW_SKIP_NUM: "3"
@@ -39,14 +39,14 @@ windows:
       log_output_path:=$LOG_DIR/$NAME/distributed
     # vio
     - |
-      roslaunch kimera_multi kimera_vio_jackal.launch \
+      roslaunch kimera_multi kimera_vio_wpb.launch \
       robot_name:=$NAME \
       robot_id:=${ROBOT_ID} \
       use_d455:=true \
       multirobot:=true \
       lcd_no_optimize:=true \
       use_external_odom:=true \ 
-      replay:=true \
+      replay:=false \
       should_use_sim_time:=true
     # camera(stereo)
     - roslaunch kimera_multi realsense_vio.launch robot_name:=$NAME

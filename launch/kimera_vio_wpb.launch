@@ -53,7 +53,7 @@
 
   <!-- Launch actual pipeline -->
   <group ns="$(arg robot_name)" >
-    <include file="$(find kimera_vio_ros)/launch/kimera_vio_ros.launch"  pass_all_args="true"/>
+    <include file="$(find kimera_vio_ros)/launch/kimera_vio_ros_uwb.launch"  pass_all_args="true"/>
 
     <!-- static transform for realsense to base frame -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="base_to_realsense" args="0 0 -0.2 0 0 0 $(arg robot_name)/realsense_base $(arg robot_name)/base" />
