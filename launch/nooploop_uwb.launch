@@ -1,6 +1,6 @@
 <launch>
     <arg name="robot_name" default="wp0" doc="Namespace of the platform producing sensor data." />
-    <arg name="port_name" default="/dev/ttyCH343USB0">
+    <arg name="port_name" default="/dev/ttyCH343USB0" />
     
     <group ns="$(arg robot_name)" >
         <include file="$(find nlink_parser)/launch/linktrack.launch" />

@@ -55,7 +55,8 @@ windows:
       /${NAME}/camera/infra1/image_rect_raw/compressed \
       /${NAME}/camera/infra2/camera_info \
       /${NAME}/camera/infra2/image_rect_raw/compressed \
-      /${NAME}/camera/imu 
+      /${NAME}/camera/imu \
+      /${NAME}/nlink_linktrack_nodeframe2
 
     # rviz
     # - rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
