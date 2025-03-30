@@ -1,0 +1,64 @@
+session_name: real-world-data-collection
+
+# Input:
+# CATKIN_WS: workspace of catkin
+# DATA_PATH: directory to save logs
+
+environment:
+  NAME: "wp0"
+  ROBOT_ID: "0"
+  NUM_ROBOTS: "3"
+  RATE: "1.0"
+  BOW_SKIP_NUM: "3"
+
+options:
+  default-command: /bin/bash
+
+windows:
+- window_name: kimera-multi-window
+  layout: tiled  
+  shell_command_before:
+    - source $CATKIN_WS/devel/setup.bash
+
+  panes:
+    # camera(stereo)
+    - |
+      sleep 3; roslaunch kimera_multi realsense_vio.launch \
+      robot_name:=$NAME \
+      enable_depth:=true \
+      align_depth:=true \
+      depth_fps:=30 \
+      depth_width:=640 \
+      depth_height:=480 \
+      enable_color:=true \
+      color_fps:=30 \
+      color_width:=640 \
+      color_height:=480
+    # UWB
+    - sleep 3; roslaunch kimera_multi nooploop_uwb.launch robot_name:=$NAME
+    # control
+    - |
+      sleep 3; roslaunch kimera_multi wpb_control.launch \
+      robot_name:=$NAME \
+      scale_linear:=1 \
+      scale_angular:=2
+    # rosbag collection
+    - |
+      rosbag record -o $DATA_PATH/${NAME} -j \
+      /${NAME}/camera/color/camera_info \
+      /${NAME}/camera/color/image_raw/compressed \
+      /${NAME}/camera/aligned_depth_to_color/camera_info \
+      /${NAME}/camera/aligned_depth_to_color/image_raw/compressed \
+      /${NAME}/camera/depth/camera_info \
+      /${NAME}/camera/depth/image_rect_raw/compressed \
+      /${NAME}/camera/infra1/camera_info \
+      /${NAME}/camera/infra1/image_rect_raw/compressed \
+      /${NAME}/camera/infra2/camera_info \
+      /${NAME}/camera/infra2/image_rect_raw/compressed \
+      /${NAME}/camera/imu 
+
+    # rviz
+    # - rviz -d $(rospack find kimera_distributed)/rviz/single_machine.rviz
+    # Press enter to kill
+      # /${NAME}/nlink_linktrack_node3
+    - rosnode kill -a \
