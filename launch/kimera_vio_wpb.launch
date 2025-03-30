@@ -14,7 +14,7 @@
 
   <arg name="do_coarse_temporal_sync" default="false"/>
   <arg name="do_fine_temporal_sync"   default="false"/>
-  <arg name="use_external_odom"       default="true"/>
+  <arg name="use_external_odom"       default="false"/>
   <arg name="use_lcd"                 default="true"/>
   <arg name="lcd_no_optimize"         default="false"/>
   <arg name="lcd_no_detection"        default="false"/>
@@ -32,16 +32,17 @@
   <arg name="log_gt_data"             value="true"/>
   <arg name="log_imu_data"            value="true"/>
   <arg name="should_use_sim_time"     default="false"/>
-  <arg name="params_folder"           value="$(find kimera_multi)/params/D455" />
+  <arg name="params_folder"           value="$(find kimera_multi)/params/rs_uwb" />
   <arg name="log_output_path"         default="$(find kimera_multi)/logs" if="$(arg log_output)" />
   <arg name="path_to_vocab"           default="$(find kimera_multi_lcd)/vocab/mit_voc.yml"/>
   <!-- <arg name="path_to_vocab"           default="$(find kimera_vio)/vocabulary/ORBvoc.yml"/> -->
 
   <!-- Subscribed Topics -->
-  <arg name="left_cam_topic"      default="/$(arg robot_name)/forward/infra1/image_rect_raw"/>
-  <arg name="right_cam_topic"     default="/$(arg robot_name)/forward/infra2/image_rect_raw"/>
-  <arg name="imu_topic"           default="/$(arg robot_name)/forward/imu"/>
-  <arg name="external_odom_topic" default="/$(arg robot_name)/jackal_velocity_controller/odom"/>
+  <arg name="left_cam_topic"      default="/$(arg robot_name)/camera/infra1/image_rect_raw"/>
+  <arg name="right_cam_topic"     default="/$(arg robot_name)/camera/infra2/image_rect_raw"/>
+  <arg name="imu_topic"           default="/$(arg robot_name)/camera/imu"/>
+  <arg name="uwb_topic"           default="/$(arg robot_name)/nlink_linktrack_nodeframe2"/>
+  <arg name="external_odom_topic" default=""/>
 
   <!-- frame information -->
   <arg name="map_frame_id"      value="$(arg robot_name)/map"/>

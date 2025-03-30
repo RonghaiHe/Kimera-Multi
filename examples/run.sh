@@ -1,6 +1,6 @@
 #!/bin/sh
-DATA_PATH_STR="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets"
-NAME_TIME_STR="12_08"
-LOG_DIR_STR=${DATA_PATH_STR}"/log_data_"$NAME_TIME_STR
+DATA_PATH_="/home/robot/dataset/self"
+LOG_DIR_=${DATA_PATH_}"/log_data_"$(date +"%Y_%m_%d_%H_%M_%S")
+CATKIN_WS_="/home/robot/kimera_multi_ws" 
 
-CATKIN_WS="/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws" DATA_PATH=${DATA_PATH_STR} LOG_DIR=${LOG_DIR_STR} NAME_TIME=${NAME_TIME_STR} tmuxp load 1014-example.yaml
+DATA_PATH=${DATA_PATH_} LOG_DIR=${LOG_DIR_} CATKIN_WS=${CATKIN_WS_} tmuxp load ${CATKIN_WS_}/src/kimera_multi/examples/test3.yaml

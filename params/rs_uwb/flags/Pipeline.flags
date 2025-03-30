@@ -1,0 +1,2 @@
+#!/bin/bash
+--deterministic_random_number_generator=true
