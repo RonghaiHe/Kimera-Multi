@@ -1,7 +1,7 @@
 repositories:
   nlink_parser:
     type: git
-    url: git@github.com:nooploop-dev/nlink_parser.git
+    url: git@github.com:RonghaiHe/nlink_parser.git
     version: master
   realsense_ros:
     type: git
