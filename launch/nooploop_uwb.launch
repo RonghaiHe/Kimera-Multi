@@ -1,9 +1,8 @@
 <launch>
     <arg name="robot_name" default="wp0" doc="Namespace of the platform producing sensor data." />
-    <arg name="port_name" default="/dev/ttyCH343USB0" />
+    <arg name="port_name0" default="/dev/ttyCH343USB0" />
+    <arg name="port_name1" default="/dev/ttyCH343USB1" />
+    <arg name="port_name2" default="/dev/ttyCH343USB2" />
     
-    <group ns="$(arg robot_name)" >
-        <include file="$(find nlink_parser)/launch/linktrack.launch" />
-        <param name="linktrack0/port_name" value="$(arg port_name)" />
-    </group>
+    <include file="$(find nlink_parser)/launch/linktrack_multi_tags.launch" pass_all_args="true" ns="$(arg robot_name)" />
 </launch>
