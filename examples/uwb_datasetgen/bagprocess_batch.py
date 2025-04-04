@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
 import bisect
-from pyLieAlg import so3,SO3,SE3
+from pyLieAlg import so3, SO3, SE3
 
 # ------------------ 输入参数 ---------------
 # 计算src 的bot到rec的相对距离序列
@@ -16,29 +16,39 @@ from pyLieAlg import so3,SO3,SE3
 
 # ]
 
+gt_path_prefix = "/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/Kimera-Multi-Public-Data/ground_truth/"
+
 gt_path_list = [
-    "1207/acl_jackal_gt_odom.csv",
-    "1207/acl_jackal2_gt_odom.csv",
+    gt_path_prefix + "1014/acl_jackal_gt_odom.csv",
+    gt_path_prefix + "1014/acl_jackal2_gt_odom.csv",
+    gt_path_prefix + "1014/hathor_gt_odom.csv"
 ]
 
-topic_format_in = "/{src_name}/{local_uwb_id}/uwb_distance"
+topic_format_in = "/{src_name}/uwb_distance/{local_uwb_id}"
 
 # bag_path = "12_07_acl_jackal.bag"
 
-bag_format_in = "campus_tunnels_12_07/12_07_{src_name}.bag"
+bag_format_in = "/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/campus_outdoor_10_14/10_14_{src_name}.bag"
 
-uwb_position = [
-    [0.5, 0, 0],
-    [0, 0.5, 0],
-    [-0.5, 0, 0],
+# from left_camera to body: [-0.0302200000733137, 0.00740000000223517, 0.0160199999809265]
+t_b_left_camera = [-0.0302200000733137,
+                   0.00740000000223517, 0.0160199999809265]
+uwb_position_wrt_left_camera = [
+    [-0.04, 0.035, 0.005],
+    [0.022, -0.019, -0.051],
+    [0.141, 0.04, -0.068]
 ]
 
-publish_feq = 50.0 # Hz
-noise_effect = 0.01 # 高斯噪声的标准差占原始值的比例
+uwb_position = [[a + b for a, b in zip(t_b_left_camera, pos)]
+                for pos in uwb_position_wrt_left_camera]
+
+publish_feq = 50.0  # Hz
+noise_effect = 0.01  # 高斯噪声的标准差占原始值的比例
 noise_err = 0.0382
 mode = "a"
 
-def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, publish_feq, noise_effect):
+
+def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, publish_feq, noise_effect):
     # ------------------ 自动计算参数 ---------------
     # 以下部分无需修改
     rec_path = "1207/sparkal1_gt_odom.csv"
@@ -61,14 +71,13 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
     rec_id = botids.index(rec_name)
     src_id = botids.index(src_name)
 
-        
     print("src_name:", src_name)
     print("rec_name, rec_id:", rec_name, rec_id)
     topic = "uwb_distance"
     full_topic = "/"+src_name+"/"+rec_name+"/"+topic
     # print("full_topic:", full_topic)
 
-    # import rosbag   
+    # import rosbag
     # with rosbag.Bag(bag_path, 'r') as bag:
     #     # 查看bag信息
     #     print("bag info:")
@@ -86,7 +95,8 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
         float32 fp_rssi # 测量强度 初始化rx_rssi=-82，fp_rssi=-76
         float32 rx_rssi
         '''
-        def __init__(self, id = -1, dis = -1 , fp_rssi = -76, rx_rssi = -82):
+
+        def __init__(self, id=-1, dis=-1, fp_rssi=-76, rx_rssi=-82):
             self.role = -1
             self.id = id
             self.dis = dis
@@ -109,7 +119,8 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
             float32[3] imu_acc_3d   # unused
             LinktrackNode2[] nodes  # 即上面的LinkNode ,其中ID同时标识了在列表中的index
         '''
-        def __init__(self, id = -1):
+
+        def __init__(self, id=-1):
             self.role = -1
             self.id = id
             self.local_time = 0
@@ -124,25 +135,27 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
             self.imu_acc_3d = [9.8, 9.8, 9.8]
             self.nodes = []
 
-
     src_gt = pd.read_csv(src_path)
     rec_gt = pd.read_csv(rec_path)
 
     def resample(resample_time_list, rtime_list, rx, ry, rz,
-                rqw, rqx, rqy, rqz,
-                ):
+                 rqw, rqx, rqy, rqz,
+                 ):
         '''
             根据start和end时间戳与rx,ry,rz的长度，生成新的x,y,z列表,
             再根据resample_time_list重新采样,若resample_time_list之外，则填充-1
-            
+
             resample_time_list: 重新采样的时间戳列表
             rtime_list: 原始时间戳列表
             rx, ry, rz: 原始坐标列表
             rqw, rqx, rqy, rqz: 原始四元数列表
         '''
-        interp_x = interp1d(rtime_list, rx, kind='linear', fill_value=-1, bounds_error=False)
-        interp_y = interp1d(rtime_list, ry, kind='linear', fill_value=-1, bounds_error=False)
-        interp_z = interp1d(rtime_list, rz, kind='linear', fill_value=-1, bounds_error=False)
+        interp_x = interp1d(rtime_list, rx, kind='linear',
+                            fill_value=-1, bounds_error=False)
+        interp_y = interp1d(rtime_list, ry, kind='linear',
+                            fill_value=-1, bounds_error=False)
+        interp_z = interp1d(rtime_list, rz, kind='linear',
+                            fill_value=-1, bounds_error=False)
 
         # resample_data = {
         #     "x": interp_x(resample_time_list),
@@ -176,7 +189,8 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                 quaternion=[rqw[index], rqx[index], rqy[index], rqz[index]],
             )
             i_r_dt = SO3(
-                quaternion=[rqw[index + 1], rqx[index + 1], rqy[index + 1], rqz[index + 1]],
+                quaternion=[rqw[index + 1], rqx[index + 1],
+                            rqy[index + 1], rqz[index + 1]],
             )
             dt = rtime_list[index + 1] - rtime_list[index]
             dt_src = time - rtime_list[index]
@@ -190,7 +204,7 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
             qx[i] = i_tr_q[1]
             qy[i] = i_tr_q[2]
             qz[i] = i_tr_q[3]
-        
+
         resample_data = np.array([
             interp_x(resample_time_list),
             interp_y(resample_time_list),
@@ -199,14 +213,14 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
         ])
         return resample_data
 
-    def uwb_position_transform(us_position, bot_trans,bot_rotation):
+    def uwb_position_transform(us_position, bot_trans, bot_rotation):
         '''
             us_position: bot坐标系下若干个uwb坐标(默认n=3个uwb,每个uwb 3个坐标 dx,dy,dz)
             bot_trans: bot在世界坐标系下的坐标 (3,)
             bot_rotation: bot在世界坐标系下的旋转矩阵 (3,3)
             @return: 3个uwb坐标在世界坐标系下的坐标  
         '''
-        
+
         us_globle_position = np.zeros((uwb_num, 3))
         for i in range(uwb_num):
             rp = us_position[i]
@@ -228,7 +242,6 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
         # 检查src_us_global和rec_us_global中是否存在-1 u如果有，则返回-1
         if np.any(src_us_global == -1) or np.any(rec_us_global == -1):
             return -1.0
-
 
         # 计算相对距离
         rd = np.linalg.norm(src_us_global - rec_us_global)
@@ -271,7 +284,7 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
 
         botnum = len(botids)
         # botnum 个 "x", "y", "z", "qw", "qx", "qy", "qz" 时间序列，即 botnum * 7 * len(publish_time_list)
-        resample_rec_data = np.full((botnum,7, len(publish_time_list)), -1.0)
+        resample_rec_data = np.full((botnum, 7, len(publish_time_list)), -1.0)
         print("resample_rec_data.shape:", resample_rec_data.shape)
 
         # 遍历rec_path_list,读取对应gt，并根据publish_feq重新采样
@@ -304,7 +317,7 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
         # from msg import LinktrackNode2
 
         import tqdm
-        from data_package.msg import LinktrackNodeframe2, LinktrackNode2
+        from nlink_parser.msg import LinktrackNodeframe2, LinktrackNode2
 
         NodeFrameTimeList = []
         LinktrackNodeframeTimeList = []
@@ -319,13 +332,14 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                 NodeList = []
                 # 每一个src_uid构造一个LinktrackNodeframe2 msg，其id由当前全局uid决定
                 timestamp = rospy.Time.from_sec(time * 1e-9)
-                NodeFrame = LinktrackNodeframe2(id = src_uid + src_id * uwb_num,stamp=timestamp)
+                NodeFrame = LinktrackNodeframe2(
+                    id=src_uid + src_id * uwb_num, stamp=timestamp)
 
                 for boti in range(len(botids)):
                     for num in range(uwb_num):
                         # id = boti * uwb_num + num
                         NodeList.append(LinkNode(id=boti, dis=-1.0,
-                                                fp_rssi=-76, rx_rssi=-82))
+                                                 fp_rssi=-76, rx_rssi=-82))
                         NodeFrame.nodes.append(LinktrackNode2(
                             role=0,
                             id=boti * uwb_num + num,
@@ -334,14 +348,15 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                             rx_rssi=-82
                         ))
                 if test_output:
-                    NodeFrameList.append(NodeList)  
+                    NodeFrameList.append(NodeList)
                 LinktrackNodeframeList.append(NodeFrame)
-            
+
             src_us_global = uwb_position_transform(
                 np.array(uwb_position),
-                np.array(src_resample[0:3,i]), # botid 0,1,2
+                np.array(src_resample[0:3, i]),  # botid 0,1,2
                 SO3(
-                    quaternion=[src_resample[3,i], src_resample[4,i], src_resample[5,i], src_resample[6,i]]
+                    quaternion=[src_resample[3, i], src_resample[4,
+                                                                 i], src_resample[5, i], src_resample[6, i]]
                 ).matrix()
             )
             # 遍历所有的bot
@@ -357,15 +372,18 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                                 src_us_global[src_j]
                             )
                             if test_output:
-                                NodeFrameList[src_i][botid * uwb_num + src_j].dis = rd
-                            LinktrackNodeframeList[src_i].nodes[botid * uwb_num + src_j].dis = rd
+                                NodeFrameList[src_i][botid *
+                                                     uwb_num + src_j].dis = rd
+                            LinktrackNodeframeList[src_i].nodes[botid *
+                                                                uwb_num + src_j].dis = rd
                     continue
                 # 其他bot的距离数据生成
                 rec_us_global = uwb_position_transform(
                     np.array(uwb_position),
-                    np.array(resample_rec_data[botid][0:3,i]), # botid 0,1,2
+                    np.array(resample_rec_data[botid][0:3, i]),  # botid 0,1,2
                     SO3(
-                        quaternion=[resample_rec_data[botid][3,i], resample_rec_data[botid][4,i], resample_rec_data[botid][5,i], resample_rec_data[botid][6,i]]
+                        quaternion=[resample_rec_data[botid][3, i], resample_rec_data[botid]
+                                    [4, i], resample_rec_data[botid][5, i], resample_rec_data[botid][6, i]]
                     ).matrix()
                 )
                 # print("src_us_global:", src_us_global)
@@ -379,14 +397,14 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                             rec_us_global[rec_uid]
                         )
                         if test_output:
-                            NodeFrameList[src_uid][botid * uwb_num + rec_uid].dis = rd
-                        LinktrackNodeframeList[src_uid].nodes[botid * uwb_num + rec_uid].dis = rd
-
+                            NodeFrameList[src_uid][botid *
+                                                   uwb_num + rec_uid].dis = rd
+                        LinktrackNodeframeList[src_uid].nodes[botid *
+                                                              uwb_num + rec_uid].dis = rd
 
             if test_output:
                 NodeFrameTimeList.append(NodeFrameList)
             LinktrackNodeframeTimeList.append(LinktrackNodeframeList)
-
 
         if test_output:
             # 生成uwb_num个csv 分别输出
@@ -400,12 +418,12 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                         di.append(node.dis)
 
                     data.append(di)
-                
+
                 # print("botnum * uwbnum" , botnum * uwb_num)
                 # print("nodenum", len(NodeFrameTimeList[0][src_uid]))
-                df = pd.DataFrame(data, columns=["stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)]) 
+                df = pd.DataFrame(data, columns=[
+                                  "stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)])
                 df.to_csv(f"src_{src_uid}_rd_list.csv", index=False)
-
 
         # 写入bag文件
         print("----读取bag文件:{}----".format(bag_path))
@@ -421,13 +439,13 @@ def process_once(src_path, rec_path_list,topic_fomat, bag_path, uwb_position, pu
                     Lframe: LinktrackNodeframe2
                     # 设置时间戳
                     stamp = rospy.Time.from_sec(time)
-                    tpc = topic_fomat.format(src_name=src_name, local_uwb_id=local_uid)
+                    tpc = topic_fomat.format(
+                        src_name=src_name, local_uwb_id=local_uid)
 
                     bag.write(tpc, Lframe, stamp)
 
-        
-
     rd_resample_src_timestamp()
+
 
 for src_path_ in gt_path_list:
     src_name_ = src_path_.split("/")[-1].split("_gt_odom")[0]
@@ -437,4 +455,5 @@ for src_path_ in gt_path_list:
     print("src_path:", src_path_)
     print("rec_path_list:", rec_path_list_)
     print("bag_path:", bag_path_)
-    process_once(src_path_, rec_path_list_, topic_format_in, bag_path_, uwb_position, publish_feq, noise_effect)
+    process_once(src_path_, rec_path_list_, topic_format_in,
+                 bag_path_, uwb_position, publish_feq, noise_effect)
