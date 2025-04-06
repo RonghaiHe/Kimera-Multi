@@ -5,6 +5,8 @@ import numpy as np
 from scipy.interpolate import interp1d
 import bisect
 from pyLieAlg import so3, SO3, SE3
+import tqdm
+from nlink_parser.msg import LinktrackNodeframe2, LinktrackNode2
 
 # ------------------ 输入参数 ---------------
 # 计算src 的bot到rec的相对距离序列
@@ -46,6 +48,7 @@ publish_feq = 50.0  # Hz
 noise_effect = 0.01  # 高斯噪声的标准差占原始值的比例
 noise_err = 0.0382
 mode = "a"
+test_output = True
 
 
 def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, publish_feq, noise_effect):
@@ -63,7 +66,7 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
 
     uwb_num = len(uwb_position)
 
-    test_output = True
+
     rec_path = rec_path_list[0] if len(rec_path_list) > 0 else rec_path
     src_name = src_path.split("/")[-1].split("_gt_odom")[0]
     rec_name = rec_path.split("/")[-1].split("_gt_odom")[0]
@@ -222,6 +225,12 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
         '''
 
         us_globle_position = np.zeros((uwb_num, 3))
+        # 检查bot_trans是否全为-1，如果是，则返回[-1, -1, -1]
+        if np.all(bot_trans == -1):
+            us_globle_position.fill(-1)
+            return us_globle_position
+
+
         for i in range(uwb_num):
             rp = us_position[i]
             # 计算uwb在世界坐标系下的坐标
@@ -293,7 +302,7 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
             rname = rec_path.split("/")[-1].split("_gt_odom")[0]
             rid = botids.index(rname)
             print("rec_name, rec_id:", rname, rid)
-            # 根据publish_feq重新采样rec时间戳
+            # 根据publish_feq重新采样rec时间戳,  超出部分x y z为-1
             rec_resample = resample(
                 publish_time_list,
                 np.array(rec_gt["#timestamp_kf"]).astype(np.float64),
@@ -316,8 +325,7 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
         # 依时间计算相对距离
         # from msg import LinktrackNode2
 
-        import tqdm
-        from nlink_parser.msg import LinktrackNodeframe2, LinktrackNode2
+
 
         NodeFrameTimeList = []
         LinktrackNodeframeTimeList = []
@@ -352,11 +360,10 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
                 LinktrackNodeframeList.append(NodeFrame)
 
             src_us_global = uwb_position_transform(
-                np.array(uwb_position),
+                np.array(object=uwb_position),
                 np.array(src_resample[0:3, i]),  # botid 0,1,2
                 SO3(
-                    quaternion=[src_resample[3, i], src_resample[4,
-                                                                 i], src_resample[5, i], src_resample[6, i]]
+                    quaternion=[src_resample[3, i], src_resample[4, i], src_resample[5, i], src_resample[6, i]]
                 ).matrix()
             )
             # 遍历所有的bot
@@ -421,8 +428,7 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
 
                 # print("botnum * uwbnum" , botnum * uwb_num)
                 # print("nodenum", len(NodeFrameTimeList[0][src_uid]))
-                df = pd.DataFrame(data, columns=[
-                                  "stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)])
+                df = pd.DataFrame(data, columns=["stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)])
                 df.to_csv(f"src_{src_uid}_rd_list.csv", index=False)
 
         # 写入bag文件
@@ -455,5 +461,7 @@ for src_path_ in gt_path_list:
     print("src_path:", src_path_)
     print("rec_path_list:", rec_path_list_)
     print("bag_path:", bag_path_)
+    bag_path_ ="/media/pc/Data/1_mproject/Kimera/Dataset/output.bag"
+
     process_once(src_path_, rec_path_list_, topic_format_in,
                  bag_path_, uwb_position, publish_feq, noise_effect)
