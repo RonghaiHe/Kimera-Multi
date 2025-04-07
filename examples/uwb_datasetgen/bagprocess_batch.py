@@ -18,12 +18,12 @@ from nlink_parser.msg import LinktrackNodeframe2, LinktrackNode2
 
 # ]
 
-gt_path_prefix = "/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/Kimera-Multi-Public-Data/ground_truth/"
+gt_path_prefix = "/media/pc/Data/1_mproject/Kimera/Dataset/1207"
 
 gt_path_list = [
-    gt_path_prefix + "1014/acl_jackal_gt_odom.csv",
-    gt_path_prefix + "1014/acl_jackal2_gt_odom.csv",
-    gt_path_prefix + "1014/hathor_gt_odom.csv"
+    gt_path_prefix + "/acl_jackal_gt_odom.csv",
+    gt_path_prefix + "/acl_jackal2_gt_odom.csv",
+    gt_path_prefix + "/hathor_gt_odom.csv"
 ]
 
 topic_format_in = "/{src_name}/uwb_distance/{local_uwb_id}"
@@ -50,19 +50,53 @@ noise_err = 0.0382
 mode = "a"
 test_output = True
 
+# 传感器误差率
+senser_error_rate = 0.01
+# 传感器误差生成器
+def senser_generator():
+    # 生成 N(2,0.1) 的误差
+    return np.random.normal(2, 0.1)
+
+
+
+# bot间多径效应误差
+nloss_error_inter_bot = 0.005
+# 单uwb间多径效应误差率
+nloss_error_inter_uwb = 0.005
+
+# 多径效应误差生成器
+def nloss_generator(rd):
+    # 生成 rd 的n 倍误差，其中n 为0-1均匀分布
+    n = np.random.uniform(0, 1)
+    # 生成 rd 的n 倍误差
+    return rd * n
+
+botids = [
+    "acl_jackal",
+    "acl_jackal2",
+    "sparkal1",
+    "sparkal2",
+    "hathor",
+    "thoth",
+]
+
+# ------------------ 自动计算参数 ---------------
 
 def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, publish_feq, noise_effect):
     # ------------------ 自动计算参数 ---------------
     # 以下部分无需修改
     rec_path = "1207/sparkal1_gt_odom.csv"
-    botids = [
-        "acl_jackal",
-        "acl_jackal2",
-        "sparkal1",
-        "sparkal2",
-        "hathor",
-        "thoth",
-    ]
+    # botids = [
+    #     # "acl_jackal",
+    #     # "acl_jackal2",
+    #     # "sparkal1",
+    #     # "sparkal2",
+    #     # "hathor",
+    #     # "thoth",
+    # ]
+
+
+
 
     uwb_num = len(uwb_position)
 
@@ -242,7 +276,9 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
             us_globle_position[i] = gp
         return us_globle_position
 
-    def rd_calculate_withnoise(src_us_global, rec_us_global):
+    def rd_calculate_withnoise(src_us_global, rec_us_global,
+                               if_nloss, if_senser_error,
+                               ):
         '''
             计算相对距离
             src_us_global: src在世界坐标系下的坐标 (3,)
@@ -254,203 +290,229 @@ def process_once(src_path, rec_path_list, topic_fomat, bag_path, uwb_position, p
 
         # 计算相对距离
         rd = np.linalg.norm(src_us_global - rec_us_global)
-        # # 添加相对距离的1%的噪声
-        # rd = rd + np.random.normal(0, noise_effect * rd)
 
         # 添加标准差固定的高斯噪声
-        rd = rd + np.random.normal(0, noise_err)
+        rdr = rd + np.random.normal(0, noise_err)
 
-        return rd
+        # 添加传感器误差
+        if if_senser_error:
+            # 传感器误差
+            rdr = rd + senser_generator()
+        # 添加多径效应误差
+        if if_nloss:
+            # 多径效应误差
+            rdr = rdr + nloss_generator(rd)
 
-    def rd_resample_src_timestamp():
-        '''
-            根据输入publish_feq，重新采样src时间戳与坐标,并生成相对距离
-        '''
-        import rosbag
-        import rospy
-        # 根据publish_feq重新采样src时间戳
-        publish_time_list = np.arange(
-            src_gt.iloc[0]["#timestamp_kf"],
-            src_gt.iloc[-1]["#timestamp_kf"],
-            1.0 / publish_feq * 1e9
-        )
+        return rdr
 
-        src_resample = resample(
+
+    '''
+        根据输入publish_feq，重新采样src时间戳与坐标,并生成相对距离
+    '''
+    import rosbag
+    import rospy
+    # 根据publish_feq重新采样src时间戳
+    publish_time_list = np.arange(
+        src_gt.iloc[0]["#timestamp_kf"],
+        src_gt.iloc[-1]["#timestamp_kf"],
+        1.0 / publish_feq * 1e9
+    )
+
+    src_resample = resample(
+        publish_time_list,
+        np.array(src_gt["#timestamp_kf"]).astype(np.float64),
+        np.array(src_gt["x"]).astype(np.float64),
+        np.array(src_gt["y"]).astype(np.float64),
+        np.array(src_gt["z"]).astype(np.float64),
+        np.array(src_gt["qw"]).astype(np.float64),
+        np.array(src_gt["qx"]).astype(np.float64),
+        np.array(src_gt["qy"]).astype(np.float64),
+        np.array(src_gt["qz"]).astype(np.float64)
+    )
+
+    # df = pd.DataFrame(src_resample.T, columns=["x", "y", "z", "qw", "qx", "qy", "qz"])
+    # df.to_csv(f"src_resample.csv", index=False)
+    # exit()
+
+    botnum = len(botids)
+    # botnum 个 "x", "y", "z", "qw", "qx", "qy", "qz" 时间序列，即 botnum * 7 * len(publish_time_list)
+    resample_rec_data = np.full((botnum, 7, len(publish_time_list)), -1.0)
+    print("resample_rec_data.shape:", resample_rec_data.shape)
+
+    # 遍历rec_path_list,读取对应gt，并根据publish_feq重新采样
+    for rec_path in rec_path_list:
+        rec_gt = pd.read_csv(rec_path)
+        rname = rec_path.split("/")[-1].split("_gt_odom")[0]
+        rid = botids.index(rname)
+        print("rec_name, rec_id:", rname, rid)
+        # 根据publish_feq重新采样rec时间戳,  超出部分x y z为-1
+        rec_resample = resample(
             publish_time_list,
-            np.array(src_gt["#timestamp_kf"]).astype(np.float64),
-            np.array(src_gt["x"]).astype(np.float64),
-            np.array(src_gt["y"]).astype(np.float64),
-            np.array(src_gt["z"]).astype(np.float64),
-            np.array(src_gt["qw"]).astype(np.float64),
-            np.array(src_gt["qx"]).astype(np.float64),
-            np.array(src_gt["qy"]).astype(np.float64),
-            np.array(src_gt["qz"]).astype(np.float64)
+            np.array(rec_gt["#timestamp_kf"]).astype(np.float64),
+            np.array(rec_gt["x"]).astype(np.float64),
+            np.array(rec_gt["y"]).astype(np.float64),
+            np.array(rec_gt["z"]).astype(np.float64),
+            np.array(rec_gt["qw"]).astype(np.float64),
+            np.array(rec_gt["qx"]).astype(np.float64),
+            np.array(rec_gt["qy"]).astype(np.float64),
+            np.array(rec_gt["qz"]).astype(np.float64)
         )
-
-        # df = pd.DataFrame(src_resample.T, columns=["x", "y", "z", "qw", "qx", "qy", "qz"])
-        # df.to_csv(f"src_resample.csv", index=False)
+        # # 将rec_resample中的数据写入文件检查
+        # df = pd.DataFrame(rec_resample.T, columns=["x", "y", "z"])
+        # df.to_csv(f"rec_resample_{rname}.csv", index=False)
         # exit()
 
-        botnum = len(botids)
-        # botnum 个 "x", "y", "z", "qw", "qx", "qy", "qz" 时间序列，即 botnum * 7 * len(publish_time_list)
-        resample_rec_data = np.full((botnum, 7, len(publish_time_list)), -1.0)
-        print("resample_rec_data.shape:", resample_rec_data.shape)
+        # 将rec_resample中的数据写入resample_rec_data
+        resample_rec_data[rid] = rec_resample
 
-        # 遍历rec_path_list,读取对应gt，并根据publish_feq重新采样
-        for rec_path in rec_path_list:
-            rec_gt = pd.read_csv(rec_path)
-            rname = rec_path.split("/")[-1].split("_gt_odom")[0]
-            rid = botids.index(rname)
-            print("rec_name, rec_id:", rname, rid)
-            # 根据publish_feq重新采样rec时间戳,  超出部分x y z为-1
-            rec_resample = resample(
-                publish_time_list,
-                np.array(rec_gt["#timestamp_kf"]).astype(np.float64),
-                np.array(rec_gt["x"]).astype(np.float64),
-                np.array(rec_gt["y"]).astype(np.float64),
-                np.array(rec_gt["z"]).astype(np.float64),
-                np.array(rec_gt["qw"]).astype(np.float64),
-                np.array(rec_gt["qx"]).astype(np.float64),
-                np.array(rec_gt["qy"]).astype(np.float64),
-                np.array(rec_gt["qz"]).astype(np.float64)
-            )
-            # # 将rec_resample中的数据写入文件检查
-            # df = pd.DataFrame(rec_resample.T, columns=["x", "y", "z"])
-            # df.to_csv(f"rec_resample_{rname}.csv", index=False)
-            # exit()
-
-            # 将rec_resample中的数据写入resample_rec_data
-            resample_rec_data[rid] = rec_resample
-
-        # 依时间计算相对距离
-        # from msg import LinktrackNode2
+    # 依时间计算相对距离
+    # from msg import LinktrackNode2
 
 
 
-        NodeFrameTimeList = []
-        LinktrackNodeframeTimeList = []
-        for i in tqdm.tqdm(range(len(publish_time_list))):
-            time = publish_time_list[i]
+    NodeFrameTimeList = []
+    LinktrackNodeframeTimeList = []
+    for i in tqdm.tqdm(range(len(publish_time_list))):
+        time = publish_time_list[i]
 
-            NodeFrameList = []
-            LinktrackNodeframeList = []
-            for src_uid in range(uwb_num):
-                # 本机存储uwb_num 个 NodeList ,index对应为本机uwb的本地序号，
-                # frame2内对应的全局id 为 src_id * uwb_num + src_uid
-                NodeList = []
-                # 每一个src_uid构造一个LinktrackNodeframe2 msg，其id由当前全局uid决定
-                timestamp = rospy.Time.from_sec(time * 1e-9)
-                NodeFrame = LinktrackNodeframe2(
-                    id=src_uid + src_id * uwb_num, stamp=timestamp)
+        NodeFrameList = []
+        LinktrackNodeframeList = []
 
-                for boti in range(len(botids)):
-                    for num in range(uwb_num):
-                        # id = boti * uwb_num + num
-                        NodeList.append(LinkNode(id=boti, dis=-1.0,
-                                                 fp_rssi=-76, rx_rssi=-82))
-                        NodeFrame.nodes.append(LinktrackNode2(
-                            role=0,
-                            id=boti * uwb_num + num,
-                            dis=-1.0,
-                            fp_rssi=-76,
-                            rx_rssi=-82
-                        ))
-                if test_output:
-                    NodeFrameList.append(NodeList)
-                LinktrackNodeframeList.append(NodeFrame)
+        # uwb是否出现传感器误差
+        if_uwberror_list = []
 
-            src_us_global = uwb_position_transform(
-                np.array(object=uwb_position),
-                np.array(src_resample[0:3, i]),  # botid 0,1,2
+        for src_uid in range(uwb_num):
+            # 本机存储uwb_num 个 NodeList ,index对应为本机uwb的本地序号，
+            # frame2内对应的全局id 为 src_id * uwb_num + src_uid
+            NodeList = []
+            # 每一个src_uid构造一个LinktrackNodeframe2 msg，其id由当前全局uid决定
+            timestamp = rospy.Time.from_sec(time * 1e-9)
+            NodeFrame = LinktrackNodeframe2(
+                id=src_uid + src_id * uwb_num, stamp=timestamp)
+
+            for boti in range(len(botids)):
+                for num in range(uwb_num):
+                    # id = boti * uwb_num + num
+                    NodeList.append(LinkNode(id=boti, dis=-1.0,
+                                                fp_rssi=-76, rx_rssi=-82))
+                    NodeFrame.nodes.append(LinktrackNode2(
+                        role=0,
+                        id=boti * uwb_num + num,
+                        dis=-1.0,
+                        fp_rssi=-76,
+                        rx_rssi=-82
+                    ))
+            if test_output:
+                NodeFrameList.append(NodeList)
+            LinktrackNodeframeList.append(NodeFrame)
+            if_uwberror = np.random.uniform(0, 1) < senser_error_rate
+            if_uwberror_list.append(if_uwberror)
+
+        src_us_global = uwb_position_transform(
+            np.array(object=uwb_position),
+            np.array(src_resample[0:3, i]),  # botid 0,1,2
+            SO3(
+                quaternion=[src_resample[3, i], src_resample[4, i], src_resample[5, i], src_resample[6, i]]
+            ).matrix()
+        )
+        # 遍历所有的bot
+        for botid in range(botnum):
+            # 结算是否出现bot间的多径效应
+            if_inter_bot = np.random.uniform(0, 1) < nloss_error_inter_bot
+
+            if botid == src_id:
+                # 自距离数据生成
+                for src_i in range(uwb_num):
+                    for src_j in range(uwb_num):
+                        if src_i == src_j:
+                            continue
+                        rd = rd_calculate_withnoise(
+                            src_us_global[src_i],
+                            src_us_global[src_j],
+                            if_nloss=False, if_senser_error=if_uwberror_list[src_i]
+                        )
+
+                        if test_output:
+                            NodeFrameList[src_i][botid *
+                                                    uwb_num + src_j].dis = rd
+                        LinktrackNodeframeList[src_i].nodes[botid *
+                                                            uwb_num + src_j].dis = rd
+                continue
+            # 其他bot的距离数据生成
+            rec_us_global = uwb_position_transform(
+                np.array(uwb_position),
+                np.array(resample_rec_data[botid][0:3, i]),  # botid 0,1,2
                 SO3(
-                    quaternion=[src_resample[3, i], src_resample[4, i], src_resample[5, i], src_resample[6, i]]
+                    quaternion=[resample_rec_data[botid][3, i], resample_rec_data[botid]
+                                [4, i], resample_rec_data[botid][5, i], resample_rec_data[botid][6, i]]
                 ).matrix()
             )
-            # 遍历所有的bot
-            for botid in range(botnum):
-                if botid == src_id:
-                    # 自距离数据生成
-                    for src_i in range(uwb_num):
-                        for src_j in range(uwb_num):
-                            if src_i == src_j:
-                                continue
-                            rd = rd_calculate_withnoise(
-                                src_us_global[src_i],
-                                src_us_global[src_j]
-                            )
-                            if test_output:
-                                NodeFrameList[src_i][botid *
-                                                     uwb_num + src_j].dis = rd
-                            LinktrackNodeframeList[src_i].nodes[botid *
-                                                                uwb_num + src_j].dis = rd
-                    continue
-                # 其他bot的距离数据生成
-                rec_us_global = uwb_position_transform(
-                    np.array(uwb_position),
-                    np.array(resample_rec_data[botid][0:3, i]),  # botid 0,1,2
-                    SO3(
-                        quaternion=[resample_rec_data[botid][3, i], resample_rec_data[botid]
-                                    [4, i], resample_rec_data[botid][5, i], resample_rec_data[botid][6, i]]
-                    ).matrix()
-                )
-                # print("src_us_global:", src_us_global)
-                # print("rec_us_global:", rec_us_global)
-                # exit()
-                # 计算相对距离,相对距离id以目标机id为准
-                for src_uid in range(uwb_num):
-                    for rec_uid in range(uwb_num):
-                        rd = rd_calculate_withnoise(
-                            src_us_global[src_uid],
-                            rec_us_global[rec_uid]
-                        )
-                        if test_output:
-                            NodeFrameList[src_uid][botid *
-                                                   uwb_num + rec_uid].dis = rd
-                        LinktrackNodeframeList[src_uid].nodes[botid *
-                                                              uwb_num + rec_uid].dis = rd
+            # print("src_us_global:", src_us_global)
+            # print("rec_us_global:", rec_us_global)
+            # exit()
+            # 计算相对距离,相对距离id以目标机id为准
+            for src_uid in range(uwb_num):
+                for rec_uid in range(uwb_num):
+                    # 结算是否出现 bot间的多径效应
+                    if_inter_uwb = np.random.uniform(0, 1) < nloss_error_inter_uwb
+                    if_nloss = if_inter_bot or if_inter_uwb
+                    rd = rd_calculate_withnoise(
+                        src_us_global[src_uid],
+                        rec_us_global[rec_uid],
+                        if_nloss=if_nloss,
+                        if_senser_error=if_uwberror_list[src_uid]
+                    )
 
-            if test_output:
-                NodeFrameTimeList.append(NodeFrameList)
-            LinktrackNodeframeTimeList.append(LinktrackNodeframeList)
+                    if test_output:
+                        NodeFrameList[src_uid][botid *
+                                                uwb_num + rec_uid].dis = rd
+                    LinktrackNodeframeList[src_uid].nodes[botid *
+                                                            uwb_num + rec_uid].dis = rd
 
         if test_output:
-            # 生成uwb_num个csv 分别输出
-            from decimal import Decimal
-            for src_uid in range(uwb_num):
-                data = []
-                for i in range(len(publish_time_list)):
-                    time = publish_time_list[i]
-                    di = [f"{Decimal(str(time)):f}"]
-                    for node in NodeFrameTimeList[i][src_uid]:
-                        di.append(node.dis)
+            NodeFrameTimeList.append(NodeFrameList)
+        LinktrackNodeframeTimeList.append(LinktrackNodeframeList)
 
-                    data.append(di)
+    if test_output:
+        # 生成uwb_num个csv 分别输出
+        from decimal import Decimal
+        for src_uid in range(uwb_num):
+            data = []
+            for i in range(len(publish_time_list)):
+                time = publish_time_list[i]
+                di = [f"{Decimal(str(time)):f}"]
+                for node in NodeFrameTimeList[i][src_uid]:
+                    di.append(node.dis)
 
-                # print("botnum * uwbnum" , botnum * uwb_num)
-                # print("nodenum", len(NodeFrameTimeList[0][src_uid]))
-                df = pd.DataFrame(data, columns=["stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)])
-                df.to_csv(f"src_{src_uid}_rd_list.csv", index=False)
+                data.append(di)
 
-        # 写入bag文件
-        print("----读取bag文件:{}----".format(bag_path))
-        with rosbag.Bag(bag_path, mode=mode) as bag:
-            print("----写入bag文件:{}----".format(bag_path))
+            # print("botnum * uwbnum" , botnum * uwb_num)
+            # print("nodenum", len(NodeFrameTimeList[0][src_uid]))
+            df = pd.DataFrame(data, columns=["stamp"] + [f"bot-{i//uwb_num}_{i%uwb_num}" for i in range(botnum * uwb_num)])
+            df.to_csv(f"{src_name}_{src_uid}.csv", index=False)
 
-            for i in tqdm.tqdm(range(len(publish_time_list))):
-                time = publish_time_list[i] * 1e-9
-                LinktrackNodeframeL = LinktrackNodeframeTimeList[i]
-                # 遍历所有的本地uwb
-                for local_uid in range(uwb_num):
-                    Lframe = LinktrackNodeframeL[local_uid]
-                    Lframe: LinktrackNodeframe2
-                    # 设置时间戳
-                    stamp = rospy.Time.from_sec(time)
-                    tpc = topic_fomat.format(
-                        src_name=src_name, local_uwb_id=local_uid)
+    if bag_path == "":
+        print("bag_path is empty, exit")
+        return
+    # 写入bag文件
+    print("----读取bag文件:{}----".format(bag_path))
+    with rosbag.Bag(bag_path, mode=mode) as bag:
+        print("----写入bag文件:{}----".format(bag_path))
 
-                    bag.write(tpc, Lframe, stamp)
+        for i in tqdm.tqdm(range(len(publish_time_list))):
+            time = publish_time_list[i] * 1e-9
+            LinktrackNodeframeL = LinktrackNodeframeTimeList[i]
+            # 遍历所有的本地uwb
+            for local_uid in range(uwb_num):
+                Lframe = LinktrackNodeframeL[local_uid]
+                Lframe: LinktrackNodeframe2
+                # 设置时间戳
+                stamp = rospy.Time.from_sec(time)
+                tpc = topic_fomat.format(
+                    src_name=src_name, local_uwb_id=local_uid)
 
-    rd_resample_src_timestamp()
+                bag.write(tpc, Lframe, stamp)
+
 
 
 for src_path_ in gt_path_list:
@@ -461,7 +523,7 @@ for src_path_ in gt_path_list:
     print("src_path:", src_path_)
     print("rec_path_list:", rec_path_list_)
     print("bag_path:", bag_path_)
-    bag_path_ ="/media/pc/Data/1_mproject/Kimera/Dataset/output.bag"
+    bag_path_ =""
 
     process_once(src_path_, rec_path_list_, topic_format_in,
                  bag_path_, uwb_position, publish_feq, noise_effect)
