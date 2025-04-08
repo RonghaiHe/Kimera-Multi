@@ -55,7 +55,7 @@ senser_error_rate = 0.01
 # 传感器误差生成器
 def senser_generator():
     # 生成 N(2,0.1) 的误差
-    return np.random.normal(2, 0.1)
+    return max(np.random.normal(2, 0.1), 0.0)
 
 
 
@@ -66,7 +66,7 @@ nloss_error_inter_uwb = 0.005
 
 # 多径效应误差生成器
 def nloss_generator(rd):
-    # 生成 rd 的n 倍误差，其中n 为0-1均匀分布
+    # 生成 rd 的n 倍误差，其中n 为0.3-1均匀分布
     n = np.random.uniform(0, 1)
     # 生成 rd 的n 倍误差
     return rd * n
@@ -75,9 +75,6 @@ botids = [
     "acl_jackal",
     "acl_jackal2",
     "sparkal1",
-    "sparkal2",
-    "hathor",
-    "thoth",
 ]
 
 # ------------------ 自动计算参数 ---------------
@@ -523,7 +520,6 @@ for src_path_ in gt_path_list:
     print("src_path:", src_path_)
     print("rec_path_list:", rec_path_list_)
     print("bag_path:", bag_path_)
-    bag_path_ =""
 
     process_once(src_path_, rec_path_list_, topic_format_in,
                  bag_path_, uwb_position, publish_feq, noise_effect)
