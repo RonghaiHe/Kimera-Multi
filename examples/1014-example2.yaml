@@ -124,14 +124,22 @@ windows:
       robot_id:=0 \
       robot_name:=${ROBOT0} \
       num_robots:=${NUM_ROBOTS} \
-      frame_id:=${ROBOT0}/map
+      frame_id:=${ROBOT0}/map \
+      run_mode:=1 \
+      optimized_path_topic:=dpgo_ros_node/path \
+      pose_graph_topic:=kimera_distributed/pose_graph_incremental \
+      dpgmo_topic:=dpgo_ros_node/optimized_pose_graph
     - |
       roslaunch kimera_pgmo kimera_pgmo_robot.launch \
       dataset:=Jackal \
       robot_id:=1 \
       robot_name:=${ROBOT1} \
       num_robots:=${NUM_ROBOTS} \
-      frame_id:=${ROBOT1}/map
+      frame_id:=${ROBOT1}/map \
+      run_mode:=1 \
+      optimized_path_topic:=dpgo_ros_node/path \
+      pose_graph_topic:=kimera_distributed/pose_graph_incremental \
+      dpgmo_topic:=dpgo_ros_node/optimized_pose_graph
 
 - window_name: data
   focus: true  
