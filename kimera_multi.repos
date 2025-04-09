@@ -95,6 +95,10 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/minkindr_ros.git
     version: master
+  nlink_parser:
+    type: git
+    url: git@github.com:RonghaiHe/nlink_parser.git
+    version: master
   numpy_eigen:
     type: git
     url: git@github.com:ethz-asl/numpy_eigen.git
