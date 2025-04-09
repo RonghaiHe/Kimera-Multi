@@ -18,11 +18,11 @@ repositories:
   dpgo:
     type: git
     url: git@github.com:RonghaiHe/dpgo.git
-    version: features/range
+    version: main
   dpgo_ros:
     type: git
     url: git@github.com:RonghaiHe/dpgo_ros.git
-    version: features/range
+    version: main
   eigen_catkin:
     type: git
     url: git@github.com:ethz-asl/eigen_catkin.git
@@ -50,7 +50,7 @@ repositories:
   kimera_distributed:
     type: git
     url: git@github.com:RonghaiHe/Kimera-Distributed.git
-    version: features/range_opt
+    version: features/main
   kimera_multi_lcd:
     type: git
     url: git@github.com:RonghaiHe/Kimera-Multi-LCD.git
@@ -62,7 +62,7 @@ repositories:
   kimera_ros:
     type: git
     url: git@github.com:RonghaiHe/Kimera-VIO-ROS.git
-    version: features/range_backend
+    version: features/main
   kimera_rpgo:
     type: git
     url: git@github.com:MIT-SPARK/Kimera-RPGO.git
@@ -113,7 +113,7 @@ repositories:
     version: fix/march_native_optional
   pose_graph_tools:
     type: git
-    url: git@github.com:Pactivsa/pose_graph_tools.git
+    url: git@github.com:MIT-SPARK/pose_graph_tools.git
     version: master
   protobuf_catkin:
     type: git
