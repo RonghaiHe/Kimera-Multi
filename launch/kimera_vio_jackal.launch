@@ -29,6 +29,10 @@
   <!-- diable backend using incremental pose -->
   <arg name="no_incremental_pose" default="true"/>
 
+  <arg name="num_robots"              default="1"/>
+  <arg name="use_uwb"               default="false"/>
+  <arg name="rosbag_path"        doc="path to rosbag, must set unless online"/>
+
   <!-- enable publishing but disable all GUIs -->
   <arg name="visualize"		      default="true"/>
   <arg name="viz_type"                default="0" />

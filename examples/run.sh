@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-03-29 15:48:53
+ # @LastEditTime: 2025-04-10 10:21:03
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -21,10 +21,13 @@ TIME2DATASET=(
 )    
 
 CATKIN_WS_="/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws"
-NAME_TIME_=${2:-"12_07"}
+NAME_TIME_=${2:-"12_08"}
 DATA_PATH_="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/"${TIME2DATASET[$NAME_TIME_]}
 LOG_DIR_=${DATA_PATH_}"/log_data_"$NAME_TIME_
 
+if [ NAME_TIME_ = "12_07" -o NAME_TIME_ = "10_14" ]; then
+    DATA_PATH_="/media/sysu/new_volume1/kimera-multi-datasets-tunnel+hybrid/"${TIME2DATASET[$NAME_TIME_]}
+fi
 # If no input, Run the example
 # ./run.sh or ./run.sh 6 or ./run.sh 6 12_07
 if [ $# -eq 0 -o "$1" = "6" ]; then
@@ -34,9 +37,19 @@ if [ $# -eq 0 -o "$1" = "6" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
-    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example.yaml
 
-# ./run.sh 0 or ./run.sh 0 12_08
+# ./run.sh 2 or ./run.sh 2 12_08
+elif [ $1 = "3" ]; then
+    # bash run.sh 1
+    echo "Run the CSLAM example for 3 robots of " $NAME_TIME_ 
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example3.yaml
+
+# ./run.sh 2 or ./run.sh 2 12_08
 elif [ $1 = "2" ]; then
     # bash run.sh 1
     echo "Run the CSLAM example with mapping for 2 robots of " $NAME_TIME_ 
@@ -44,7 +57,7 @@ elif [ $1 = "2" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
-    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example2.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example2.yaml
 
 # ./run.sh 1 or ./run.sh 1 12_08
 elif [ $1 = "1" ]; then
@@ -54,7 +67,7 @@ elif [ $1 = "1" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
-    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single6.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example_single6.yaml
 
 # ./run.sh 0 or ./run.sh 0 12_08
 elif [ $1 = "0" ]; then
@@ -65,7 +78,7 @@ elif [ $1 = "0" ]; then
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
     ROBOT_NAME="acl_jackal2" \
-    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single_global_map.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example_single_global_map.yaml
 
 # ./run.sh 00 or ./run.sh 00 12_08
 elif [ $1 = "00" ]; then
@@ -76,7 +89,7 @@ elif [ $1 = "00" ]; then
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
     ROBOT_NAME="acl_jackal2" \
-    tmuxp load $CATKIN_WS/src/kimera_multi/examples/1014-example_single.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example_single.yaml
 else
     echo "Invalid input"
 fi
