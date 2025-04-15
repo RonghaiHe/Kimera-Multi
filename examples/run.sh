@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-04-10 10:21:03
+ # @LastEditTime: 2025-04-13 01:23:39
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -25,7 +25,7 @@ NAME_TIME_=${2:-"12_08"}
 DATA_PATH_="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/"${TIME2DATASET[$NAME_TIME_]}
 LOG_DIR_=${DATA_PATH_}"/log_data_"$NAME_TIME_
 
-if [ NAME_TIME_ = "12_07" -o NAME_TIME_ = "10_14" ]; then
+if [ "$NAME_TIME_" = "12_07" -o "$NAME_TIME_" = "10_14" ]; then
     DATA_PATH_="/media/sysu/new_volume1/kimera-multi-datasets-tunnel+hybrid/"${TIME2DATASET[$NAME_TIME_]}
 fi
 # If no input, Run the example

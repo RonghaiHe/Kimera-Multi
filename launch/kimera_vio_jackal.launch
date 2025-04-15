@@ -7,7 +7,8 @@
   <arg name="replay"      default="false" />
   <arg name="verbosity"   default="0"/>
 
-  <arg name="debug_dense" default="true"/>
+  <arg name="debug"       default="false"/>
+  <arg name="debug_dense" default="false"/>
   <arg name="launch_prefix" value="" unless="$(arg debug_dense)"/>
   <arg name="launch_prefix" value="gdb -ex run --args" if="$(arg debug_dense)"/>
 
@@ -53,6 +54,7 @@
   <arg name="right_cam_topic"     default="/$(arg robot_name)/forward/infra2/image_rect_raw"/>
   <arg name="imu_topic"           default="/$(arg robot_name)/forward/imu"/>
   <arg name="external_odom_topic" default="/$(arg robot_name)/jackal_velocity_controller/odom"/>
+  <arg name="uwb_topic"           default="/$(arg robot_name)/uwb_distance"/>
 
   <!-- frame information -->
   <arg name="map_frame_id"      value="$(arg robot_name)/map"/>
