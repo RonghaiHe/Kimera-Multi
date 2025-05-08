@@ -3,7 +3,7 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2024-12-26 20:31:33
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-03-14 12:23:29
+LastEditTime: 2025-04-16 16:57:06
 FilePath: /src/kimera_multi/evaluation/lc_result.py
 Version: 1.3.0
 Description: To log the loop closure result with groundtruth pose and visualize them
@@ -70,7 +70,7 @@ def parse_args():
 
 def read_groundtruth_tum(file_path):
     # Read the ground truth poses from TUM file
-    groundtruth_data = pd.read_csv(file_path, sep=' ', header=None)
+    groundtruth_data = pd.read_csv(file_path, sep=' ', header=0)
     groundtruth_data.columns = ['timestamp',
                                 'tx', 'ty', 'tz', 'qx', 'qy', 'qz', 'qw']
     return groundtruth_data
@@ -116,6 +116,37 @@ def calculate_relative_pose(pose1, pose2):
     angle = rotation.magnitude()
 
     return q_rel, t_rel, distance, angle
+
+
+def pose_residual(pose1, pose2, Tij_est):
+    q1 = pose1[3:]
+    t1 = pose1[:3]
+    q2 = pose2[3:]
+    t2 = pose2[:3]
+
+    # Convert quaternions to rotation matrices
+    R1 = R.from_quat(q1).as_matrix()
+    R2 = R.from_quat(q2).as_matrix()
+
+    T1 = np.eye(4)
+    T1[0:3, 0:3] = R1
+    T1[0:3, 3] = t1
+    T2 = np.eye(4)
+    T2[0:3, 0:3] = R2
+    T2[0:3, 3] = t2
+
+    Tij = np.eye(4)
+    Tij[0:3, 0:3] = R.from_quat(
+        [Tij_est[0], Tij_est[1], Tij_est[2], Tij_est[3]]).as_matrix()
+    Tij[0:3, 3] = Tij_est[0:3]
+
+    err = T2 - T1 @ Tij
+    rot_error = np.linalg.norm(err[:3, :3], 'fro')  # Frobenius norm
+
+    # Extract translation error
+    trans_error = np.linalg.norm(err[:3, 3])
+
+    return rot_error, trans_error
 
 
 def parse_csv_files(loop_closure_file, lcd_status_file, lcd_result_file):
@@ -350,7 +381,7 @@ def process_intra_lc_data(i, intra_df, groundtruth_data, keyframes_data,
                 "Est_Pose1_X,Est_Pose1_Y,Est_Pose1_Z,"  # Estimated positions
                 "Est_Pose2_X,Est_Pose2_Y,Est_Pose2_Z,"
                 "Relative Rotation Quaternion,Relative Translation Vector,"
-                "Estimated Relative Rotation,Estimated Relative Translation\n")
+                "Estimated Relative Rotation,Estimated Relative Translation,Err_rot,Err_trans\n")
 
         for index, row in intra_df.iterrows():
             keyframe_id1 = row['pose1']
@@ -385,6 +416,9 @@ def process_intra_lc_data(i, intra_df, groundtruth_data, keyframes_data,
                     # Calculate the relative pose, distance, and rotation angle
                     q_rel, t_rel, distance, angle = calculate_relative_pose(
                         gt_pose1, gt_pose2)
+
+                    rot_err, tran_err = pose_residual(
+                        gt_pose1, gt_pose2, row[4:11])
 
                     color = cmap(norm(distance))
                     results['lines'].append({
@@ -459,7 +493,7 @@ def process_inter_lc_data(i, inter_df, groundtruth_data, keyframes_data,
                 "Est_Pose1_X,Est_Pose1_Y,Est_Pose1_Z,"  # Estimated positions
                 "Est_Pose2_X,Est_Pose2_Y,Est_Pose2_Z,"
                 "Relative Rotation Quaternion,Relative Translation Vector,"
-                "Estimated Relative Rotation,Estimated Relative Translation\n")
+                "Estimated Relative Rotation,Estimated Relative Translation,Err_rot,Err_trans\n")
 
         # f.write("Loop Closure Number,Robot 1,Relative Time 1,Robot 2,Relative Time 2,Distance,Rotation Angle (radians),Estimated Distance, Estimated Angle(Radian),Timestamp 1,Timestamp 2,Relative Rotation Quaternion,Relative Translation Vector,Estimated Relative Rotation, Estimated Relative Translation\n")
 
@@ -500,6 +534,9 @@ def process_inter_lc_data(i, inter_df, groundtruth_data, keyframes_data,
                     # Calculate the relative pose, distance, and rotation angle
                     q_rel, t_rel, distance, angle = calculate_relative_pose(
                         gt_pose1, gt_pose2)
+
+                    rot_err, tran_err = pose_residual(
+                        gt_pose1, gt_pose2, row[4:11])
 
                     color = cmap(norm(distance))
                     results['lines'].append({
@@ -543,7 +580,7 @@ def process_inter_lc_data(i, inter_df, groundtruth_data, keyframes_data,
                         # Est pose
                         f"{est_pose1[0]},{est_pose1[1]},{est_pose1[2]},"
                         f"{est_pose2[0]},{est_pose2[1]},{est_pose2[2]},"
-                        f"{q_rel},{t_rel},{estimated_relative_R},{estimated_relative_t}\n")
+                        f"{q_rel},{t_rel},{estimated_relative_R},{estimated_relative_t},{rot_err},{tran_err}\n")
                 else:
                     f.write(
                         f"{index},{ID2ROBOT[int(robot1)]},,{ID2ROBOT[int(robot2)]},,No GT data,,"
