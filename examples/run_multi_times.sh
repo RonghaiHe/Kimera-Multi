@@ -4,7 +4,7 @@
  # @Author: Ronghai He
  # @Date: 2024-10-31 12:32:52
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-04-15 00:42:32
+ # @LastEditTime: 2025-04-18 02:00:25
  # @FilePath: /src/kimera_multi/examples/run_multi_times.sh
  # @Version: 
  # @Description: 
@@ -28,8 +28,8 @@ DIR_BASE="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/paper/${TI
 if [ $ROBOT_KIND = "1" ]; then
     # ./run_multi_times.sh 1 12_08
     echo "Running single robot"
-    TARGET_SCRIPT="run.sh 1 $DATE"
-    DIR_ORIGIN="${DIR_BASE}/exp_single"
+    TARGET_SCRIPT="run.sh 4 $DATE"
+    DIR_ORIGIN="${DIR_BASE}/exp_distributed"
 else
     # ./run_multi_times.sh 2 12_08
     echo "Running multi robot"

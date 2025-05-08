@@ -7,12 +7,12 @@ session_name: kimera-distributed-example
 # NAME_TIME: name of the dataset
 
 environment:
-  ROBOT0: "sparkal2"
-  ROBOT1: "acl_jackal2"
-  ROBOT2: "acl_jackal"
-  ROSBAG0: "$DATA_PATH/${NAME_TIME}_sparkal2.bag"
-  ROSBAG1: "$DATA_PATH/${NAME_TIME}_acl_jackal2.bag"
-  ROSBAG2: "$DATA_PATH/${NAME_TIME}_acl_jackal.bag"
+  ROBOT0: "acl_jackal"
+  ROBOT1: "apis"
+  ROBOT2: "sobek"
+  ROSBAG0: "$DATA_PATH/${NAME_TIME}_acl_jackal.bag"
+  ROSBAG1: "$DATA_PATH/${NAME_TIME}_apis.bag"
+  ROSBAG2: "$DATA_PATH/${NAME_TIME}_sobek.bag"
   RATE: "1.0"
   NUM_ROBOTS: "3"
   BOW_SKIP_NUM: "3"
@@ -45,7 +45,7 @@ windows:
       dataset_name:=Jackal \
       log_output_path:=$LOG_DIR/$ROBOT0/distributed \
       random_seed:=0 \
-      robot_names_config:=robot_names3
+      robot_names_config:=1207_robot_names3
     - |
       roslaunch kimera_distributed kimera_distributed.launch \
       robot_id:=1 \
@@ -54,7 +54,7 @@ windows:
       dataset_name:=Jackal \
       log_output_path:=$LOG_DIR/$ROBOT1/distributed \
       random_seed:=1 \
-      robot_names_config:=robot_names3
+      robot_names_config:=1207_robot_names3
     - |
       roslaunch kimera_distributed kimera_distributed.launch \
       robot_id:=2 \
@@ -63,7 +63,7 @@ windows:
       dataset_name:=Jackal \
       log_output_path:=$LOG_DIR/$ROBOT2/distributed \
       random_seed:=2 \
-      robot_names_config:=robot_names3
+      robot_names_config:=1207_robot_names3
 
 - window_name: dpgo
   focus: true
@@ -82,7 +82,7 @@ windows:
       multi_master:=false \
       log_output_path:=$LOG_DIR/$ROBOT0/distributed \
       random_seed:=6 \
-      robot_names_config:=robot_names3
+      robot_names_config:=1207_robot_names3
     - |
       roslaunch kimera_distributed dpgo.launch \
       robot_id:=2 \
@@ -92,7 +92,7 @@ windows:
       multi_master:=false \
       log_output_path:=$LOG_DIR/$ROBOT2/distributed \
       random_seed:=8 \
-      robot_names_config:=robot_names3
+      robot_names_config:=1207_robot_names3
     - |
       roslaunch kimera_distributed dpgo.launch \
       robot_id:=1 \
@@ -102,8 +102,7 @@ windows:
       multi_master:=false \
       log_output_path:=$LOG_DIR/$ROBOT1/distributed \
       random_seed:=7 \
-      robot_names_config:=robot_names3
-    
+      robot_names_config:=1207_robot_names3    
 
 - window_name: vio
   # focus: true
@@ -127,7 +126,7 @@ windows:
       log_output_path:=$LOG_DIR/$ROBOT0/single \
       include_pipeline_flags:=true \
       use_uwb:=true \
-      num_robots:=3 \
+      num_robots:=$NUM_ROBOTS \
       viz_type:=2 \
       run_stereo_dense:=false 
     - |
@@ -144,7 +143,7 @@ windows:
       log_output_path:=$LOG_DIR/$ROBOT1/single \
       include_pipeline_flags:=true \
       use_uwb:=true \
-      num_robots:=3 \
+      num_robots:=$NUM_ROBOTS \
       viz_type:=2 \
       run_stereo_dense:=false
     - | 
@@ -161,7 +160,7 @@ windows:
       log_output_path:=$LOG_DIR/$ROBOT2/single \
       include_pipeline_flags:=true \
       use_uwb:=true \
-      num_robots:=3 \
+      num_robots:=$NUM_ROBOTS \
       viz_type:=2 \
       run_stereo_dense:=false
 
@@ -176,15 +175,21 @@ windows:
     - |
       roslaunch kimera_distributed distance_process.launch \
       robot_id:=0 \
-      robot_name:=$ROBOT0
+      robot_name:=$ROBOT0 \
+      robot_names_config:=1207_robot_names3 \
+      gt_file_path:=/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/Kimera-Multi-Public-Data/ground_truth/1207/
     - |
       roslaunch kimera_distributed distance_process.launch \
       robot_id:=1 \
-      robot_name:=$ROBOT1
+      robot_name:=$ROBOT1 \
+      robot_names_config:=1207_robot_names3 \
+      gt_file_path:=/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/Kimera-Multi-Public-Data/ground_truth/1207/
     - |
       roslaunch kimera_distributed distance_process.launch \
       robot_id:=2 \
-      robot_name:=$ROBOT2
+      robot_name:=$ROBOT2 \
+      robot_names_config:=1207_robot_names3 \
+      gt_file_path:=/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/Kimera-Multi-Public-Data/ground_truth/1207/
 
 # - window_name: mesh_semantics
 #   layout: tiled  
@@ -274,38 +279,38 @@ windows:
 
   panes:
     - |
-      sleep 10; roslaunch kimera_distributed mit_rosbag.launch \
-      bagfile:=$ROSBAG2 \
-      input_ns:=$ROBOT2 \
-      output_ns:=$ROBOT2 \
+      sleep 15; roslaunch kimera_distributed mit_rosbag.launch \
+      bagfile:=$ROSBAG0 \
+      input_ns:=$ROBOT0 \
+      output_ns:=$ROBOT0 \
       use_uwb:=true \
       rate:=$RATE \
-      start_time_after:=30.69 \
+      start_time_after:=22.82 \
       fix_duration:=true \
-      duration_num:=720 \
-      delay_num:=600
+      duration_num:=600 \
+      delay_num:=0
     - |
-      sleep 10; roslaunch kimera_distributed mit_rosbag.launch \
+      sleep 15; roslaunch kimera_distributed mit_rosbag.launch \
       bagfile:=$ROSBAG1 \
       input_ns:=$ROBOT1 \
       output_ns:=$ROBOT1 \
       use_uwb:=true \
       rate:=$RATE \
       publish_clock:=true \
-      start_time_after:=61.6 \
+      start_time_after:=18.62 \
       fix_duration:=true \
-      duration_num:=1320 \
+      duration_num:=600 \
       delay_num:=0
     - |
-      sleep 10; roslaunch kimera_distributed mit_rosbag.launch \
-      bagfile:=$ROSBAG0 \
-      input_ns:=$ROBOT0 \
-      output_ns:=$ROBOT0 \
+      sleep 15; roslaunch kimera_distributed mit_rosbag.launch \
+      bagfile:=$ROSBAG2 \
+      input_ns:=$ROBOT2 \
+      output_ns:=$ROBOT2 \
       use_uwb:=true \
       rate:=$RATE \
-      start_time_after:=140.49 \
+      start_time_after:=17.25 \
       fix_duration:=true \
-      duration_num:=1320 \
+      duration_num:=600 \
       delay_num:=0
     # - sleep 5; rviz -d $(rospack find kimera_distributed)/rviz/single_machine2.rviz
     - roscore

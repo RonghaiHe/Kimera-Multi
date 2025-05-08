@@ -5,7 +5,7 @@
  # @Author: Ronghai He
  # @Date: 2024-09-02 15:59:25
  # @LastEditors: RonghaiHe hrhkjys@qq.com
- # @LastEditTime: 2025-04-13 01:23:39
+ # @LastEditTime: 2025-04-18 01:59:44
  # @FilePath: /src/kimera_multi/examples/run.sh
  # @Version: 
  # @Description: This script runs different SLAM examples based on the input argument.
@@ -24,9 +24,11 @@ CATKIN_WS_="/media/sysu/new_volume1/80G/sysu/herh/kimera_multi_ws"
 NAME_TIME_=${2:-"12_08"}
 DATA_PATH_="/media/sysu/Data/multi_robot_datasets/kimera_multi_datasets/"${TIME2DATASET[$NAME_TIME_]}
 LOG_DIR_=${DATA_PATH_}"/log_data_"$NAME_TIME_
+FILE_RUN_="1014-example3"
 
 if [ "$NAME_TIME_" = "12_07" -o "$NAME_TIME_" = "10_14" ]; then
     DATA_PATH_="/media/sysu/new_volume1/kimera-multi-datasets-tunnel+hybrid/"${TIME2DATASET[$NAME_TIME_]}
+    FILE_RUN_="1207-example3"
 fi
 # If no input, Run the example
 # ./run.sh or ./run.sh 6 or ./run.sh 6 12_07
@@ -39,6 +41,14 @@ if [ $# -eq 0 -o "$1" = "6" ]; then
     NAME_TIME=${NAME_TIME_} \
     tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example.yaml
 
+elif [ $1 = "4" ]; then
+    echo "Run the multi-robot orgin of " $NAME_TIME_
+    CATKIN_WS=${CATKIN_WS_} \
+    DATA_PATH=${DATA_PATH_} \
+    LOG_DIR=${LOG_DIR_} \
+    NAME_TIME=${NAME_TIME_} \
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1207-example3_origin.yaml
+
 # ./run.sh 2 or ./run.sh 2 12_08
 elif [ $1 = "3" ]; then
     # bash run.sh 1
@@ -47,7 +57,7 @@ elif [ $1 = "3" ]; then
     DATA_PATH=${DATA_PATH_} \
     LOG_DIR=${LOG_DIR_} \
     NAME_TIME=${NAME_TIME_} \
-    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/1014-example3.yaml
+    tmuxp load $CATKIN_WS_/src/kimera_multi/examples/${FILE_RUN_}.yaml
 
 # ./run.sh 2 or ./run.sh 2 12_08
 elif [ $1 = "2" ]; then
