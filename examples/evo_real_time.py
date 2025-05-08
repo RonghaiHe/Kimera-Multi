@@ -3,7 +3,7 @@ Copyright © 2025, Sun Yat-sen University, Guangzhou, Guangdong, 510275, All Rig
 Author: Ronghai He
 Date: 2024-09-28 15:57:06
 LastEditors: RonghaiHe hrhkjys@qq.com
-LastEditTime: 2025-04-15 23:26:53
+LastEditTime: 2025-04-18 16:24:43
 FilePath: /src/kimera_multi/examples/evo_real_time.py
 Version:
 Description:
@@ -285,8 +285,8 @@ def plot_global_trajectory(all_gt_trajectories, all_est_trajectories, robot_name
 # Initialize global variables
 PREFIX = 'kimera_distributed_poses_tum_'
 INTERVAL = 5
-ROBOT_NAMES = ['acl_jackal', 'acl_jackal2',
-               'sparkal1', 'sparkal2', 'hathor', 'thoth']
+ROBOT_NAMES = ['acl_jackal', 'apis',
+               'sobek', 'apis', 'hathor', 'thoth']
 LOG_DIR = ""
 GT_DIR = ""
 APE_DIR = ""
@@ -358,6 +358,15 @@ def signal_handler(_sig, _frame):
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGHUP, signal_handler)
 
+# Add a function to count DPGO log files
+
+
+def count_dpgo_logs(robot_dir):
+    """Count the number of DPGO log files in the directory"""
+    dpgo_files = glob.glob(os.path.join(robot_dir, 'dpgo_log_*.csv'))
+    return len(dpgo_files)
+
+
 newest_file_num = 0
 
 
@@ -416,7 +425,7 @@ def main(retry_count=10):
 
     # Define these variables that were missing before
     TYPE_DIR = 'distributed/'
-    JUDGE_IF_KILLED = 2500
+    JUDGE_IF_KILLED = 10000
     newest_file = None
     if not flag_multi:
         TYPE_DIR = 'single/'
@@ -425,11 +434,32 @@ def main(retry_count=10):
     attempt = 0
     ad_traj_by_label = [{} for _ in range(ROBOT_NUM)]
 
+    # Add variable to track when to exit based on DPGO files
+    dpgo_file_threshold = 33  # Adjust this threshold as needed
+
     while attempt < retry_count:
         try:
             while True:
                 start_time = time.time()
                 plt.close('all')
+
+                # Check if we should terminate based on DPGO log count
+                if flag_multi and ROBOT_NUM > 0:
+                    first_robot_dir = os.path.join(
+                        LOG_DIR, ROBOT_NAMES[0], 'distributed/')
+                    dpgo_count = count_dpgo_logs(first_robot_dir)
+                    if dpgo_count >= dpgo_file_threshold:
+                        print(
+                            f"Detected {dpgo_count} DPGO log files, exceeding threshold of {dpgo_file_threshold}. Terminating.")
+                        # Save final results before exiting
+                        for num in range(ROBOT_NUM):
+                            ape_dict[ROBOT_NAMES[num]].to_csv(os.path.join(
+                                APE_DIR, f'ape_{ROBOT_NAMES[num]}.csv'), index=False)
+                        if not global_metrics_dict.empty:
+                            global_metrics_dict.to_csv(os.path.join(
+                                APE_DIR, 'global_metrics.csv'), index=False)
+                        save_pose_files()
+                        return
 
                 # Collect all valid trajectories first to compute global transformation
                 all_gt_trajectories = []
@@ -489,23 +519,24 @@ def main(retry_count=10):
                                 f'Killed for {newest_file_num} >= {JUDGE_IF_KILLED}')
                         print(
                             f'Processing {newest_file_num} of {ROBOT_NAMES[num]}')
-                        # 获取文件内容行数
-                        if not flag_multi:
-                            print(
-                                f'File of {ROBOT_NAMES[num]} has {row_num} lines')
 
-                        traj_est = file_interface.read_tum_trajectory_file(
-                            newest_file)
-                        traj_ref_, traj_est = sync.associate_trajectories(
-                            traj_ref[num], traj_est, max_diff)
+                    # 获取文件内容行数
+                    if not flag_multi:
+                        print(
+                            f'File of {ROBOT_NAMES[num]} has {row_num} lines')
 
-                        # Store original trajectories without individual alignment
-                        ad_traj_by_label[num] = {
-                            "est": traj_est, "ref": traj_ref_
-                        }
+                    traj_est = file_interface.read_tum_trajectory_file(
+                        newest_file)
+                    traj_ref_, traj_est = sync.associate_trajectories(
+                        traj_ref[num], traj_est, max_diff)
 
-                        all_gt_trajectories.append(traj_ref_)
-                        all_est_trajectories.append(traj_est)
+                    # Store original trajectories without individual alignment
+                    ad_traj_by_label[num] = {
+                        "est": traj_est, "ref": traj_ref_
+                    }
+
+                    all_gt_trajectories.append(traj_ref_)
+                    all_est_trajectories.append(traj_est)
 
                 global_transformation = None
                 if flag_multi == 1:
