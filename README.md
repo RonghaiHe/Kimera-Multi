@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="images/KM_LC.gif" alt="Loop Closure in Kimera-Multi" style="max-width:50%;">
+  <div align="center"><figcaption><strong>Loop Closure</strong> in Kimera-Multi</figcaption></div>
+</p>
+
 This is a **forked repository**. To run it, use `run_multi_times.sh` or `run.sh` in directory `/examples` so as to effectively run `1014-example.yaml`(some parameters in the file, such as path, need to be modified, and [tmuxp](https://github.com/tmux-python/tmuxp) is required):
 ```shell
 # To run Kimera-Multi for multiple times
